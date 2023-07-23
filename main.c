@@ -43,24 +43,23 @@ int main(int argc, char **argv) {
 
     printf("%s--- Start reading file ---%s\n", GREEN, NC);
     printf("%s--- GIF Signature ---%s\n", LIGHT_CYAN, NC);
-    gifGetHeader(fp, gf);
+    gifReadHeader(fp, gf);
     gifPrintSignature("%s\n", gf);
 
     printf("%s--- Logical Screen Descriptor ---%s\n", LIGHT_CYAN, NC);
-    gifGetLogicalScreenDescr(fp, gf);
+    gifReadLSD(fp, gf);
     if (gf->lsd.hasGct)
-        gifGetCt(fp, &gf->gct, &gf->lsd.bitDepth);
+        gifReadCt(fp, &gf->gct, &gf->lsd.bitDepth);
     //gifPrintLogicalScreenDescriptor(gf, 0);
     gifPrintLogicalScreenDescriptor(gf, 1);
 
     printf("%s--- Graphic Control Extension ---%s\n", LIGHT_CYAN, NC);
-    gifGetCommonGce(fp, gf);
-    gifGetSpecificGce(fp, gf);
+    gifReadGce(fp, gf);
     gifPrintGce(gf);
 
-    if (gf->gce.extCode == GIF_PIC_EXT_CODE) {        /* Simple GIF   */
+    if (gf->gceFile.extCode == GIF_PIC_EXT_CODE) {        /* Simple GIF   */
         printf("\n%s--- Image Descriptor ---%s\n", LIGHT_CYAN, NC);
-        gifGetImgDescr(fp, gf);
+        gifReadImgDescr(fp, gf, &gf->datas.img);
         gifPrintImgDescr(gf);
 
         printf("\n%s--- Image Datas ---%s\n", LIGHT_CYAN, NC);
@@ -80,7 +79,7 @@ int main(int argc, char **argv) {
             nDatasSubBlock = fgetc(fp);
             printf("\n" FMT_BYTE "\n", (unsigned int)nDatasSubBlock, nDatasSubBlock);
         }
-    } else if (gf->gce.extCode == GIF_ANIM_EXT_CODE) { /* Animated GIF */
+    } else if (gf->gceFile.extCode == GIF_ANIM_EXT_CODE) { /* Animated GIF */
     } else {
         printf("Not managed for now ... Abort!\n");
         fclose(fp);

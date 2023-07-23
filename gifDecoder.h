@@ -1,31 +1,31 @@
-/*..--------------------------------------------------------------------------.
-../ .------------------------------------------------------------------------. \
+/*..-------------------------------------------------------------------------.
+../ .-----------------------------------------------------------------------. \
 ./´/
-|x| __--""'\
-|x|  ,__  -'""`;
-|x| /   \  /"'  \
-|x|   __// \-"-_/
-|x| ´"   \  |           > Module: gifDecoder
-|x| \     |  \  _.-"',
-|x| "^,-´\/\  '" ,--. \
-|x|  \|\| | | , /    | |
-|x|     '`'\|._ |   / /
-|x|         '\),/  / |          > Creation: July 2023
-|x|           |/.-"_/           > By: KC5-BP
-|x| .__---+-_/'|--"
-|x|         _| |_--,            > Description :
-|x|        ',/ |   /                > Functions to fully extract informations
-|x|        /|| |  /                 > of GIF Picture or Animation.
-|x|     |\| |/ |- |
-|x| .-,-/ | /  '/-"
-|x| -\|/-/\/ ^,'|
-|x| _-     |  |/
-|x|  .  --"  /
-|x| /--__,.-/
-.\`\_________________________________________________________________________/´/
-..`___________________________________________________________________________´
-===============================================================================>
-============================================================================= */
+|x| ____--""'\
+|x| .  ,__  -'""`;
+|x|  \/   \  /"'  \
+|x|     __// \-"-_/
+|x| "`´"   \  |         > Module: gifDecoder
+|x|  /\     |  \  _.-"',
+|x| ^""^,-´\/\  '" ,--. \
+|x| /  \|\| | | , /    | |
+|x|       '`'\|._ |   / /
+|x|           '\),/  / |    > Creation: July 2023
+|x|             |/.-"_/     > By: KC5-BP
+|x| _..__---+-_/'|--"
+|x|           _| |_--,      > Description:
+|x|          ',/ |   /          ° Function protos to fully extract content
+|x|          /|| |  /           ° of GIF Picture or Animation.
+|x|       |\| |/ |- |
+|x| -..-,-/ | /  '/-"
+|x| /--\|/-/\/ ^,'|
+|x| -__-     |  |/
+|x| .  .  --"  /
+|x| -\/--__,.-/
+.\`\________________________________________________________________________/´/
+..`__________________________________________________________________________´
+==============================================================================>
+============================================================================ */
 
 #ifndef __GIFDECODER_H__
 #define __GIFDECODER_H__
@@ -34,7 +34,7 @@
 
 #define GIF_SIGNATURE_SIZE           6
 #define GIF_APPLICATION_NAME_SIZE   11
-#define N_DIMENSION_BYTE             2
+#define N_DIM_BYTES                  2
 
 #define TRANSPARENCY_BIT    0
 #define GIF_BITFIELD_TRANSPARENCY   0x01
@@ -64,7 +64,7 @@ typedef unsigned char color_t;
  *********************************************/
 typedef enum {
     GIF_PIC_EXT_CODE=0xF9, GIF_ANIM_EXT_CODE=0xFF
-} tagGifExt;
+} gifExtCode;
 
 /**********************************************
  * Dimension of a frame/picture
@@ -102,7 +102,7 @@ struct logicalScreenDescriptor {
     struct dimension logicDim;
     unsigned char gctInfos;
     //unsigned char bitDepth : 4; /* Bit depth -1 => Largest = 7 + 1 */
-    unsigned char bitDepth; /* Can't pass bit field as arg fn */
+    unsigned char bitDepth;     /* Can't pass bit field as arg fn */
     unsigned char hasGct   : 1;
     unsigned char backgroundIndex;
     unsigned char pxAspectRatio;
@@ -113,7 +113,7 @@ struct logicalScreenDescriptor {
  * (for both Global & Local CT)
  *********************************************/
 struct colorTable {
-    int nPal;
+    int nCol;
     struct rgb *palette;
 };
 
@@ -122,7 +122,7 @@ struct colorTable {
  *********************************************/
 struct gcePicture {
     int hasTransparency;
-    int frameDelay;     /* in hundreth of a second */
+    int frameDelay;     /* in hundreth of a second <=> 9 => 90[ms] */
     int transpColNbr;   /* in GCT */
 };
 
@@ -147,8 +147,8 @@ union gceSpecs {
 /**********************************************
  * Graphical Control Extension (GCE)
  *********************************************/
-struct graphicalCtrlExt {
-    tagGifExt extCode;
+struct gce {
+    gifExtCode extCode;
     int nGceDatas;
     union gceSpecs gceSpecs;
 };
@@ -161,7 +161,7 @@ struct imgDescriptor {
     struct dimension dim;
     unsigned char lctInfos;
     //unsigned char bitDepth     : 4; /* Bit depth -1 => Largest = 7 + 1 */
-    unsigned char bitDepth; /* Can't pass bit field as arg fn */
+    unsigned char bitDepth;         /* Can't pass bit field as arg fn */
     unsigned char isInterlaced : 1;
     unsigned char hasLct       : 1;
 };
@@ -170,17 +170,11 @@ struct imgDescriptor {
  *
  *********************************************/
 struct imgDatas {
-
-};
-
-/**********************************************
- * An Image is composed of:
- *      a description & a data sections
- *********************************************/
-struct img {
-    struct imgDescriptor descr;
-    struct colorTable lct;
-    struct imgDatas *datas;
+    int minLzwCodeSize;
+    int rawDataSize;
+    unsigned char *rawDatas;
+    struct rgb *transformedDatas; /* [f][l][c]: Frame | Line | Column
+                                   * Size from struct imgDescriptor   */
 };
 
 /**********************************************
@@ -189,17 +183,21 @@ struct img {
  *      & an image (see structure above)
  *********************************************/
 struct frame {
-    struct graphicalCtrlExt gceFrame;
-    struct img pic;
+    struct gce gceFrame;
+    //struct img img; /* Simplifies writing => img.img.descr. */
+    struct imgDescriptor descr;
+    struct colorTable lct;
+    struct imgDatas *datas;
 };
 
 /**********************************************
- * A Data is either a simple image
+ * A Data is either:
+ * - a simple image
  * or
- * A group of Frames (animation GIF usage)
+ * - a group of Frames (animation GIF usage)
  *********************************************/
-union data {
-    struct img pic;
+union gifComposition {
+    struct frame img;
     struct frame *frames;
 };
 
@@ -215,8 +213,8 @@ struct gifFile {
     char header[GIF_SIGNATURE_SIZE+1]; /* + '\0' */
     struct logicalScreenDescriptor lsd;
     struct colorTable gct;
-    struct graphicalCtrlExt gce;
-    union data datas;
+    struct gce gceFile;
+    union gifComposition datas;
 };
 
 /**********************************************
@@ -229,31 +227,23 @@ void gifStructFree(struct gifFile *gf);
 
 /**********************************************
  *********************************************/
-void gifGetHeader(FILE *fp, struct gifFile *gf);
+void gifReadHeader(FILE *fp, struct gifFile *gf);
 
 /**********************************************
  *********************************************/
-void gifGetLogicalDims(FILE *fp, struct gifFile *gf);
+void gifReadLSD(FILE *fp, struct gifFile *gf);
 
 /**********************************************
  *********************************************/
-void gifGetLogicalScreenDescr(FILE *fp, struct gifFile *gf);
+struct rgb *gifReadCt(FILE *fp, struct colorTable *ct, unsigned char *bitDepth);
 
 /**********************************************
  *********************************************/
-void gifGetCt(FILE *fp, struct colorTable *ct, unsigned char *bitDepth);
+void gifReadGce(FILE *fp, struct gifFile *gf);
 
 /**********************************************
  *********************************************/
-void gifGetCommonGce(FILE *fp, struct gifFile *gf);
-
-/**********************************************
- *********************************************/
-void gifGetSpecificGce(FILE *fp, struct gifFile *gf);
-
-/**********************************************
- *********************************************/
-void gifGetImgDescr(FILE *fp, struct gifFile *gf);
+void gifReadImgDescr(FILE *fp, struct gifFile *gf, struct frame *fr);
 
 #endif /* __GIFDECODER_H__ */
 

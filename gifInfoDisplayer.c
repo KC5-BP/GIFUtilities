@@ -39,7 +39,7 @@ void gifPrintSignature(char *fmt, struct gifFile *gf) {
 /******************************************************************************/
 void gifPrintCt(struct colorTable *ct) {
     printf("   -R-   -G-   -B-\n");
-    for (int i = 0; i < ct->nPal; ++i)
+    for (int i = 0; i < ct->nCol; ++i)
         printf("   x%02X   x%02X   x%02X\n", ct->palette[i].r, \
                                              ct->palette[i].g, \
                                              ct->palette[i].b);
@@ -55,7 +55,7 @@ void gifPrintLogicalScreenDescriptor(struct gifFile *gf, int printGct) {
     printf("Pixel aspect ratio: %d\n", gf->lsd.pxAspectRatio);
 
     if (printGct) {
-        if ( (! gf->lsd.hasGct) || (! gf->gct.nPal) || (! gf->gct.palette) ) {
+        if ( (! gf->lsd.hasGct) || (! gf->gct.nCol) || (! gf->gct.palette) ) {
             printf("Could not print GCT because file doesn't have one.\n");
             return;
         }
@@ -67,17 +67,17 @@ void gifPrintLogicalScreenDescriptor(struct gifFile *gf, int printGct) {
 
 /******************************************************************************/
 void gifPrintGce(struct gifFile *gf) {
-    printf("Extension code: %s\n",  (gf->gce.extCode == GIF_PIC_EXT_CODE) ? \
+    printf("Extension code: %s\n",  (gf->gceFile.extCode == GIF_PIC_EXT_CODE) ? \
             (GIF_PIC_EXT_STRING) :                                          \
-            ((gf->gce.extCode == GIF_ANIM_EXT_CODE) ? \
+            ((gf->gceFile.extCode == GIF_ANIM_EXT_CODE) ? \
              (GIF_ANIM_EXT_STRING) :                  \
              ("Unknown extension code")));
-    printf("Amount of GCE Datas: %d\n", gf->gce.nGceDatas);
+    printf("Amount of GCE Datas: %d\n", gf->gceFile.nGceDatas);
 
-    if (gf->gce.extCode == GIF_PIC_EXT_CODE) {
+    if (gf->gceFile.extCode == GIF_PIC_EXT_CODE) {
         printf("Has transparency: %s", \
-                gf->gce.gceSpecs.gcePic.hasTransparency ? "YES" : "NO");
-    } else if (gf->gce.extCode == GIF_ANIM_EXT_CODE) {
+                gf->gceFile.gceSpecs.gcePic.hasTransparency ? "YES" : "NO");
+    } else if (gf->gceFile.extCode == GIF_ANIM_EXT_CODE) {
     } else {
     }
 }
@@ -90,11 +90,11 @@ void gifPrintGceAnimation(struct gifFile *gf);
 
 /******************************************************************************/
 void gifPrintImgDescr(struct gifFile *gf) {
-    printf("Position from North-West corner: (%d, %d)\n", gf->datas.pic.descr.pos.x, gf->datas.pic.descr.pos.y);
-    printf("Dimension: %dx%d\n", gf->datas.pic.descr.dim.width, gf->datas.pic.descr.dim.height);
+    printf("Position from North-West corner: (%d, %d)\n", gf->datas.img.descr.pos.x, gf->datas.img.descr.pos.y);
+    printf("Dimension: %dx%d\n", gf->datas.img.descr.dim.width, gf->datas.img.descr.dim.height);
 
-    printf("Local Color Table infos: %#02x\n", gf->datas.pic.descr.lctInfos);
-    printf("'-> Bit depth: %d\n", gf->datas.pic.descr.bitDepth);
-    printf("'-> Pic is interlaced: %s\n", gf->datas.pic.descr.isInterlaced ? "YES" : "NO");
-    printf("'-> Presence of a LCT: %s", gf->datas.pic.descr.hasLct ? "YES" : "NO");
+    printf("Local Color Table infos: %#02x\n", gf->datas.img.descr.lctInfos);
+    printf("'-> Bit depth: %d\n", gf->datas.img.descr.bitDepth);
+    printf("'-> Pic is interlaced: %s\n", gf->datas.img.descr.isInterlaced ? "YES" : "NO");
+    printf("'-> Presence of a LCT: %s", gf->datas.img.descr.hasLct ? "YES" : "NO");
 }
