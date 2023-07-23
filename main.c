@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
     printf(FMT_BYTE, (unsigned int)c, c);
 
     if (c != ';') {
-        printf("Supposed \"File Terminaison\" (%c), got %c\n", c, c);
+        printf("Supposed \"File Terminaison\" (%c), got %c\n", GIF_EOF, c);
         fclose(fp);
         gifStructFree(gf);
         return -1;
