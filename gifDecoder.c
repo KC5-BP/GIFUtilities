@@ -50,27 +50,27 @@ void gifGetHeader(FILE *fp, struct gifFile *gf) {
 }
 
 /******************************************************************************/
-void gifGetLogicalDims(FILE *fp, struct gifFile *gf) {
+void gifGetDims(FILE *fp, struct dimension *dim) {
     unsigned char c;
     int i;
 
     for (i = 0; i < N_DIMENSION_BYTE; ++i) {
         c = fgetc(fp);
-        if (i)  gf->lsd.logicDim.width += ((int)c * 256);
-        else    gf->lsd.logicDim.width += c;
+        if (i)  dim->width += ((int)c * 256);
+        else    dim->width += c;
     }
 
     for (i = 0; i < N_DIMENSION_BYTE; ++i) {
         c = fgetc(fp);
-        if (i)  gf->lsd.logicDim.height += ((int)c * 256);
-        else    gf->lsd.logicDim.height += c;
+        if (i)  dim->height += ((int)c * 256);
+        else    dim->height += c;
     }
 }
 
 /******************************************************************************/
 void gifGetLogicalScreenDescr(FILE *fp, struct gifFile *gf) {
     /* *** Logical Dimensions *** */
-    gifGetLogicalDims(fp, gf);
+    gifGetDims(fp, &gf->lsd.logicDim);
 
     /* *** Global Color Table Descriptor *** */
     gf->lsd.gctInfos = (unsigned char) fgetc(fp);
@@ -167,42 +167,37 @@ void gifGetSpecificGce(FILE *fp, struct gifFile *gf) {
 void gifGetImgDescr(FILE *fp, struct gifFile *gf) {
     unsigned char c;
 
-    for (int i = 0; i < 10; ++i) {
-        c = fgetc(fp);
+    for (int i = 0; i < 7; ++i) {
         switch (i) {
             case 0: /* Image descriptor start ',' */
+				c = fgetc(fp);
                 printf("\n");
                 break;
 
             case 1: /* From North-West position: X */
+				c = fgetc(fp);
                 gf->datas.pic.descr.pos.x += c;
                 break;
             case 2:
+				c = fgetc(fp);
                 gf->datas.pic.descr.pos.x += (c * 256);
                 break;
 
             case 3: /* From North-West position: Y */
+				c = fgetc(fp);
                 gf->datas.pic.descr.pos.y += c;
                 break;
             case 4:
+				c = fgetc(fp);
                 gf->datas.pic.descr.pos.y += (c * 256);
                 break;
 
             case 5: /* Image dimension: W */
-                gf->datas.pic.descr.dim.width += c;
-                break;
-            case 6:
-                gf->datas.pic.descr.dim.width += (c * 256);
+				gifGetDims(fp, &gf->datas.pic.descr.dim);
                 break;
 
-            case 7: /* Image dimension: H */
-                gf->datas.pic.descr.dim.height += c;
-                break;
-            case 8:
-                gf->datas.pic.descr.dim.height += (c * 256);
-                break;
-
-            case 9: /* Local color table bit */
+            case 6: /* Local color table bit */
+				c = fgetc(fp);
                 printf("\n");
                 gf->datas.pic.descr.lctInfos = c;
                 gf->datas.pic.descr.bitDepth = \
