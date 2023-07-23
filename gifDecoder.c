@@ -32,20 +32,24 @@
 #include <stdlib.h>
 #include <math.h>
 
-/**********************************************************************************/
+/******************************************************************************/
 struct gifFile *gifStructAllocate(void) {
     return (struct gifFile *) calloc(1, sizeof(struct gifFile));
 }
 
+/******************************************************************************/
 void gifStructFree(struct gifFile *gf) {
     free(gf->gct.palette);
     free(gf);
 }
+
+/******************************************************************************/
 void gifGetHeader(FILE *fp, struct gifFile *gf) {
     for (int i = 0; i < GIF_SIGNATURE_SIZE; ++i)
         gf->header[i] = fgetc(fp);
 }
 
+/******************************************************************************/
 void gifGetLogicalDims(FILE *fp, struct gifFile *gf) {
     unsigned char c;
     int i;
@@ -63,6 +67,7 @@ void gifGetLogicalDims(FILE *fp, struct gifFile *gf) {
     }
 }
 
+/******************************************************************************/
 void gifGetLogicalScreenDescr(FILE *fp, struct gifFile *gf) {
     /* *** Logical Dimensions *** */
     gifGetLogicalDims(fp, gf);
@@ -70,7 +75,8 @@ void gifGetLogicalScreenDescr(FILE *fp, struct gifFile *gf) {
     /* *** Global Color Table Descriptor *** */
     gf->lsd.gctInfos = (unsigned char) fgetc(fp);
     gf->lsd.bitDepth = (gf->lsd.gctInfos & GIF_BITFIELD_PAL_BITS) + 1;
-    gf->lsd.hasGct   = (gf->lsd.gctInfos & GIF_BITFIELD_CT_PRESENCE) >> CT_PRESENCE_BIT;
+    gf->lsd.hasGct   = (gf->lsd.gctInfos & GIF_BITFIELD_CT_PRESENCE) \
+                            >> CT_PRESENCE_BIT;
 
     /* *** Background Color Index *** */
     gf->lsd.backgroundIndex = (unsigned char) fgetc(fp);
@@ -79,6 +85,7 @@ void gifGetLogicalScreenDescr(FILE *fp, struct gifFile *gf) {
     gf->lsd.pxAspectRatio = (unsigned char) fgetc(fp);
 }
 
+/******************************************************************************/
 void gifGetGct(FILE *fp, struct gifFile *gf) {
     gf->gct.nPal = pow(2, gf->lsd.bitDepth);
     gf->gct.palette = (struct rgb *) malloc(gf->gct.nPal * sizeof(struct rgb));
@@ -87,7 +94,7 @@ void gifGetGct(FILE *fp, struct gifFile *gf) {
         printf("Failed rgb allocation...\n");
         return;
     }
-    
+
     for (int i = 0; i < gf->gct.nPal; ++i) {
         gf->gct.palette[i].r = (unsigned char) getc(fp);
         gf->gct.palette[i].g = (unsigned char) getc(fp);
@@ -95,13 +102,14 @@ void gifGetGct(FILE *fp, struct gifFile *gf) {
     }
 }
 
+/******************************************************************************/
 void gifGetCommonGce(FILE *fp, struct gifFile *gf) {
     unsigned char c;
 
     c = fgetc(fp);
     if (c != GIF_GCE_START) {
         printf("Couldn't identify Graphic Control introduction ('%c')\n", \
-               GIF_GCE_START);
+                GIF_GCE_START);
         fclose(fp);
         gifStructFree(gf);
         exit(-1);
@@ -111,6 +119,7 @@ void gifGetCommonGce(FILE *fp, struct gifFile *gf) {
     gf->gce.nGceDatas = (int) getc(fp);
 }
 
+/******************************************************************************/
 void gifGetSpecificGce(FILE *fp, struct gifFile *gf) {
     unsigned char c;
 
@@ -120,7 +129,7 @@ void gifGetSpecificGce(FILE *fp, struct gifFile *gf) {
             switch(i) {
                 case 0:
                     gf->gce.gceSpecs.gcePic.hasTransparency = \
-										((int) c) & TRANSPARENCY_BIT;
+                        ((int) c) & TRANSPARENCY_BIT;
                     break;
                 case 1: case 2: /* Frame delay not used for picture */
                     gf->gce.gceSpecs.gcePic.frameDelay = (int)c;
@@ -154,7 +163,84 @@ void gifGetSpecificGce(FILE *fp, struct gifFile *gf) {
     }
 }
 
+/******************************************************************************/
+void gifGetLct(FILE *fp, struct gifFile *gf) {
+    gf->datas.pic.lct.nPal = pow(2, gf->datas.pic.descr.bitDepth);
+    gf->datas.pic.lct.palette = (struct rgb *) malloc(                      \
+                                gf->datas.pic.lct.nPal * sizeof(struct rgb));
+
+    if ( ! gf->datas.pic.lct.palette ) {
+        printf("Failed rgb allocation...\n");
+        return;
+    }
+
+    for (int i = 0; i < gf->datas.pic.lct.nPal; ++i) {
+        gf->datas.pic.lct.palette[i].r = (unsigned char) getc(fp);
+        gf->datas.pic.lct.palette[i].g = (unsigned char) getc(fp);
+        gf->datas.pic.lct.palette[i].b = (unsigned char) getc(fp);
+    }
+}
+
+/******************************************************************************/
 void gifGetImgDescr(FILE *fp, struct gifFile *gf) {
-    gf->datas.pic.descr.isInterlaced = (gf->datas.pic.descr.lctInfos & GIF_BITFIELD_INTERLACED) >> INTERLACED_BIT;
+    unsigned char c;
+
+    for (int i = 0; i < 10; ++i) {
+        c = fgetc(fp);
+        switch (i) {
+            case 0: /* Image descriptor start ',' */
+                printf("\n");
+                break;
+
+            case 1: /* From North-West position: X */
+                gf->datas.pic.descr.pos.x += c;
+                break;
+            case 2:
+                gf->datas.pic.descr.pos.x += (c * 256);
+                break;
+
+            case 3: /* From North-West position: Y */
+                gf->datas.pic.descr.pos.y += c;
+                break;
+            case 4:
+                gf->datas.pic.descr.pos.y += (c * 256);
+                break;
+
+            case 5: /* Image dimension: W */
+                gf->datas.pic.descr.dim.width += c;
+                break;
+            case 6:
+                gf->datas.pic.descr.dim.width += (c * 256);
+                break;
+
+            case 7: /* Image dimension: H */
+                gf->datas.pic.descr.dim.height += c;
+                break;
+            case 8:
+                gf->datas.pic.descr.dim.height += (c * 256);
+                break;
+
+            case 9: /* Local color table bit */
+                printf("\n");
+                gf->datas.pic.descr.lctInfos = c;
+                gf->datas.pic.descr.bitDepth = \
+                    (gf->datas.pic.descr.lctInfos & GIF_BITFIELD_PAL_BITS) + 1;
+
+                gf->datas.pic.descr.isInterlaced =                            \
+                    (gf->datas.pic.descr.lctInfos & GIF_BITFIELD_INTERLACED)  \
+                         >> INTERLACED_BIT;
+
+                gf->datas.pic.descr.hasLct =                                  \
+                    (gf->datas.pic.descr.lctInfos & GIF_BITFIELD_CT_PRESENCE) \
+                         >> CT_PRESENCE_BIT;
+
+                if (gf->datas.pic.descr.hasLct) gifGetLct(fp, gf);
+                break;
+
+            default:
+                printf("\n");
+                break;
+        }
+    }
 }
 

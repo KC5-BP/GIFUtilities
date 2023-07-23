@@ -159,16 +159,16 @@ struct imgDescriptor {
     struct location pos;
     struct dimension dim;
     unsigned char lctInfos;
-    unsigned char bitDepth : 4; /* Bit depth -1 => Largest = 7 + 1 */
-	unsigned char isInterlaced : 1;
-    unsigned char hasLct   : 1;
+    unsigned char bitDepth     : 4; /* Bit depth -1 => Largest = 7 + 1 */
+    unsigned char isInterlaced : 1;
+    unsigned char hasLct       : 1;
 };
 
 /**********************************************
  *
  *********************************************/
 struct imgDatas {
-    
+
 };
 
 /**********************************************
@@ -177,6 +177,7 @@ struct imgDatas {
  *********************************************/
 struct img {
     struct imgDescriptor descr;
+    struct colorTable lct;
     struct imgDatas *datas;
 };
 

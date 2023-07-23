@@ -39,10 +39,10 @@
 #define RED        "\033[0;31m"
 #define NC         "\033[0m"
 
-#define FMT_BYTE            "%02x(%c) "
+#define FMT_BYTE   "%02x(%c) "
 
-#define GIF_PIC_EXT_STRING		"Graphic Control Extension"
-#define GIF_ANIM_EXT_STRING		"Application Extension"
+#define GIF_PIC_EXT_STRING      "Graphic Control Extension"
+#define GIF_ANIM_EXT_STRING     "Application Extension"
 
 /**********************************************
  *********************************************/
@@ -63,6 +63,10 @@ void gifPrintGcePicture(struct gifFile *gf);
 /**********************************************
  *********************************************/
 void gifPrintGceAnimation(struct gifFile *gf);
+
+/**********************************************
+ *********************************************/
+void gifPrintImgDescr(struct gifFile *gf);
 
 #endif /* __GIFINFODISPLAYER_H__ */
 

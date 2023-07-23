@@ -15,158 +15,99 @@
 #endif
 
 int main(int argc, char **argv) {
-    FILE *fp;
-    char *fPath;
-    struct gifFile *gf;
-    unsigned char c;
-    int i;
-    int width = 0, height = 0;
-    int posX = 0, posY = 0;
-    int lzwCodeSize, nDatasSubBlock;
+	FILE *fp;
+	char *fPath;
+	struct gifFile *gf;
+	unsigned char c;
+	int i;
+	int lzwCodeSize, nDatasSubBlock;
 
-    if (argc < 2) {
-        printf("%sFile to open not given... Aborted!%s\n", RED, NC);
-        return -1;
-    }
-    
-    gf = gifStructAllocate();
-    if ( ! gf ) {
-        printf("%sCouldn't allocate \"struct gifFile\"... Aborted!%s\n", RED, NC);
-        return -1;
-    }
+	if (argc < 2) {
+		printf("%sFile to open not given... Aborted!%s\n", RED, NC);
+		return -1;
+	}
 
-    fPath = argv[1];
-    fp = fopen(fPath, "r");
+	gf = gifStructAllocate();
+	if ( ! gf ) {
+		printf("%sCouldn't allocate \"struct gifFile\"... Aborted!%s\n", RED, NC);
+		return -1;
+	}
 
-    if ( ! fp ) {
-        printf("%sCouldn't open \"%s\"%s\n", RED, fPath, NC);
-        return -1;
-    }
+	fPath = argv[1];
+	fp = fopen(fPath, "r");
 
-    printf("%s--- Start reading file ---%s\n", GREEN, NC);
-    printf("%s--- GIF Signature ---%s\n", LIGHT_CYAN, NC);
-    gifGetHeader(fp, gf);
-    gifPrintSignature("%s\n", gf);
+	if ( ! fp ) {
+		printf("%sCouldn't open \"%s\"%s\n", RED, fPath, NC);
+		return -1;
+	}
 
-    printf("%s--- Logical Screen Descriptor ---%s\n", LIGHT_CYAN, NC);
-    gifGetLogicalScreenDescr(fp, gf);
+	printf("%s--- Start reading file ---%s\n", GREEN, NC);
+	printf("%s--- GIF Signature ---%s\n", LIGHT_CYAN, NC);
+	gifGetHeader(fp, gf);
+	gifPrintSignature("%s\n", gf);
+
+	printf("%s--- Logical Screen Descriptor ---%s\n", LIGHT_CYAN, NC);
+	gifGetLogicalScreenDescr(fp, gf);
 	if (gf->lsd.hasGct)
-        gifGetGct(fp, gf);
+		gifGetGct(fp, gf);
 	//gifPrintLogicalScreenDescriptor(gf, 0);
 	gifPrintLogicalScreenDescriptor(gf, 1);
 
-    printf("%s--- Graphic Control Extension ---%s\n", LIGHT_CYAN, NC);
-    gifGetCommonGce(fp, gf);
-    gifGetSpecificGce(fp, gf);
+	printf("%s--- Graphic Control Extension ---%s\n", LIGHT_CYAN, NC);
+	gifGetCommonGce(fp, gf);
+	gifGetSpecificGce(fp, gf);
 	gifPrintGce(gf);
 
-    if (gf->gce.extCode == GIF_PIC_EXT_CODE) {        /* Simple GIF   */
-        printf("\n%s--- Image Descriptor ---%s\n", LIGHT_CYAN, NC);
-        for (i = 0; i < 10; ++i) {
-            c = fgetc(fp);
-            printf(FMT_BYTE, (unsigned int)c, c);
-            switch (i) {
-                case 0: /* Image descriptor start ',' */
-                    printf("\n");
-                    break;
+	if (gf->gce.extCode == GIF_PIC_EXT_CODE) {        /* Simple GIF   */
+		printf("\n%s--- Image Descriptor ---%s\n", LIGHT_CYAN, NC);
+		gifGetImgDescr(fp, gf);
+		gifPrintImgDescr(gf);
 
-                case 1: /* From North-West position: X */
-                    posX += c;
-                    break;
-                case 2:
-                    posX += (c * 256);
-                    break;
+		printf("\n%s--- Image Datas ---%s\n", LIGHT_CYAN, NC);
+		lzwCodeSize = (int) fgetc(fp);
+		printf(FMT_BYTE "(LZW Code size)\n", (unsigned int)lzwCodeSize, lzwCodeSize);
 
-                case 3: /* From North-West position: Y */
-                    posY += c;
-                    break;
-                case 4:
-                    posY += (c * 256);
-                    printf("(=> (%d, %d) )\n", posX, posY);
-                    break;
+		nDatasSubBlock = (int) fgetc(fp);
+		printf(FMT_BYTE "(Sublock size)\n", (unsigned int)nDatasSubBlock, nDatasSubBlock);
 
-                case 5: /* Image dimension: W */
-                    width += c;
-                    break;
-                case 6:
-                    width += (c * 256);
-                    printf("(=> (W:%d) )\n", width);
-                    break;
+		printf("%sWait user input ...%s\n", ORANGE, NC);
+		getchar();
 
-                case 7: /* Image dimension: H */
-                    height += c;
-                    break;
-                case 8:
-                    height += (c * 256);
-                    printf("(=> (H:%d) )\n", height);
-                    break;
+		while (nDatasSubBlock) {
+			for (i = 0; i < nDatasSubBlock; i++) {
+				c = fgetc(fp);
+				printf(FMT_BYTE, (unsigned int)c, c);
+				if (i && ((i % 10) == 0))   printf("\n");
+			}
 
-                case 9: /* Local color table bit */
-                    printf("\n");
-                    if (c) {
-                        unsigned char c2 = 0;
-                        int nPal = pow(2, (c & 0x07) + 1);
-                        printf("nPal: %d\n", nPal);
-                        for (int j = 0; j < nPal * 3; j++) {
-                            if (j && ((j % 3) == 0)) printf("\n");
-                            c2 = fgetc(fp);
-                            printf(FMT_BYTE, c2, c2);
-                        }
-                    }
-                    break;
+			nDatasSubBlock = fgetc(fp);
+			printf("\n" FMT_BYTE "\n", (unsigned int)nDatasSubBlock, nDatasSubBlock);
+		}
+	} else if (gf->gce.extCode == GIF_ANIM_EXT_CODE) { /* Animated GIF */
+	} else {
+		printf("Not managed for now ... Abort!\n");
+		fclose(fp);
+		gifStructFree(gf);
+		return -1;
+	}
 
-                default:
-                    printf("\n");
-                    break;
-            }
-        }
+	printf("%sWait user input ...%s\n", ORANGE, NC);
+	getchar();
 
-        printf("\n%s--- Image Datas ---%s\n", LIGHT_CYAN, NC);
-        lzwCodeSize = (int) fgetc(fp);
-        printf(FMT_BYTE "(LZW Code size)\n", (unsigned int)lzwCodeSize, lzwCodeSize);
+	c = fgetc(fp);
+	printf(FMT_BYTE, (unsigned int)c, c);
 
-        nDatasSubBlock = (int) fgetc(fp);
-        printf(FMT_BYTE "(Sublock size)\n", (unsigned int)nDatasSubBlock, nDatasSubBlock);
-        
-        for (i = 0; i < nDatasSubBlock; i++) {
-            c = fgetc(fp);
-            printf(FMT_BYTE, (unsigned int)c, c);
-            if (i && ((i % 10) == 0))   printf("\n");
-        }
-        
-        c = fgetc(fp);
-        printf("\n" FMT_BYTE "\n", (unsigned int)c, c);
-        if (c != 0) {
-            printf("Supposed \"End of GCE block\" (0), got %0x\n", c);
-            fclose(fp);
-            gifStructFree(gf);
-            return -1;
-        }
-    } else if (gf->gce.extCode == GIF_ANIM_EXT_CODE) { /* Animated GIF */
-    } else {
-        printf("Not managed for now ... Abort!\n");
-        fclose(fp);
-        gifStructFree(gf);
-        return -1;
-    }
+	if (c != ';') {
+		printf("Supposed \"File Terminaison\" (%c), got %c\n", c, c);
+		fclose(fp);
+		gifStructFree(gf);
+		return -1;
+	}
 
-    printf("%sWait user input ...%s\n", ORANGE, NC);
-    getchar();
+	printf("\n%s--- Stop reading file ---%s\n", GREEN, NC);
 
-    c = fgetc(fp);
-    printf(FMT_BYTE, (unsigned int)c, c);
+	fclose(fp);
+	gifStructFree(gf);
 
-    if (c != ';') {
-        printf("Supposed \"File Terminaison\" (%c), got %c\n", c, c);
-        fclose(fp);
-        gifStructFree(gf);
-        return -1;
-    }
-    
-    printf("\n%s--- Stop reading file ---%s\n", GREEN, NC);
-
-    fclose(fp);
-    gifStructFree(gf);
-
-    return 0;
+	return 0;
 }
