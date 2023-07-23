@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "gifDecoder.h"
+#include "gifInfoDisplayer.h"
 
 #if 1
 #define DBG(FMT, ...) 				\
@@ -12,12 +13,6 @@
 #else
 #define DBG(FMT, ...)
 #endif
-
-#define LIGHT_CYAN "\033[1;36m"
-#define ORANGE     "\033[0;33m"
-#define GREEN      "\033[0;32m"
-#define RED        "\033[0;31m"
-#define NC         "\033[0m"
 
 int main(int argc, char **argv) {
     FILE *fp;
@@ -51,39 +46,21 @@ int main(int argc, char **argv) {
     printf("%s--- Start reading file ---%s\n", GREEN, NC);
     printf("%s--- GIF Signature ---%s\n", LIGHT_CYAN, NC);
     gifGetHeader(fp, gf);
-    printf("%s\n", gf->header);
+    gifPrintSignature("%s\n", gf);
 
     printf("%s--- Logical Screen Descriptor ---%s\n", LIGHT_CYAN, NC);
     gifGetLogicalScreenDescr(fp, gf);
-    printf("Logical dimension: %dx%d\n", gf->lsd.logicDim.width, \
-										 gf->lsd.logicDim.height);
-    printf("Global Color Table: %#0x\n", gf->lsd.gctInfos);
-    printf("'-> Bit depth: %d\n", gf->lsd.bitDepth);
-    printf("'-> Presence of a GCT: %s\n", gf->lsd.hasGct ? "YES" : "NO");
-    printf("Default pixel aspect ratio: %d\n", gf->lsd.pxAspectRatio);
-
-    if (gf->lsd.hasGct) {
-        printf("%s--- Global Color Table ---%s\n", LIGHT_CYAN, NC);
+	if (gf->lsd.hasGct)
         gifGetGct(fp, gf);
-        printf("-R- -G- -B-\n");
-        for (i = 0; i < gf->gct.nPal; ++i)
-            printf("x%02X x%02X x%02X\n",	gf->gct.palette[i].r, \
-											gf->gct.palette[i].g, \
-											gf->gct.palette[i].b);
-    }
+	//gifPrintLogicalScreenDescriptor(gf, 0);
+	gifPrintLogicalScreenDescriptor(gf, 1);
 
     printf("%s--- Graphic Control Extension ---%s\n", LIGHT_CYAN, NC);
     gifGetCommonGce(fp, gf);
     gifGetSpecificGce(fp, gf);
-    printf("Extension code: %s\n",  (gf->gce.extCode == GIF_PIC_EXT) ?          \
-                                    ("Graphic Control Extension") :         \
-                                    ((gf->gce.extCode == GIF_ANIMATION_EXT) ?   \
-                                        ("Application Extension") :         \
-                                        ("Not recognized")));
-    printf("Amount of GCE Datas: %d\n", gf->gce.nGceDatas);
-    //printf("Has transparency: %s\n", gf->hasTransparency ? "YES" : "NO");
+	gifPrintGce(gf);
 
-    if (gf->gce.extCode == GIF_PIC_EXT) {        /* Simple GIF   */
+    if (gf->gce.extCode == GIF_PIC_EXT_CODE) {        /* Simple GIF   */
         printf("\n%s--- Image Descriptor ---%s\n", LIGHT_CYAN, NC);
         for (i = 0; i < 10; ++i) {
             c = fgetc(fp);
@@ -165,7 +142,7 @@ int main(int argc, char **argv) {
             gifStructFree(gf);
             return -1;
         }
-    } else if (gf->gce.extCode == GIF_ANIMATION_EXT) { /* Animated GIF */
+    } else if (gf->gce.extCode == GIF_ANIM_EXT_CODE) { /* Animated GIF */
     } else {
         printf("Not managed for now ... Abort!\n");
         fclose(fp);
