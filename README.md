@@ -8,3 +8,4 @@ References:
 
 - [GIF Animation Format](https://en.wikipedia.org/wiki/GIF#Animated_GIF)
 
+- [GIF Format in depth (ver. 89a)](https://www.w3.org/Graphics/GIF/spec-gif89a.txt)
