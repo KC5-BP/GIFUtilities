@@ -75,15 +75,15 @@ int main(int argc, char **argv) {
     printf("%s--- Graphic Control Extension ---%s\n", LIGHT_CYAN, NC);
     gifGetCommonGce(fp, gf);
     gifGetSpecificGce(fp, gf);
-    printf("Extension code: %s\n",  (gf->extCode == GIF_PIC_EXT) ?          \
+    printf("Extension code: %s\n",  (gf->gce.extCode == GIF_PIC_EXT) ?          \
                                     ("Graphic Control Extension") :         \
-                                    ((gf->extCode == GIF_ANIMATION_EXT) ?   \
+                                    ((gf->gce.extCode == GIF_ANIMATION_EXT) ?   \
                                         ("Application Extension") :         \
                                         ("Not recognized")));
-    printf("Amount of GCE Datas: %d\n", gf->nGceDatas);
-    printf("Has transparency: %s\n", gf->hasTransparency ? "YES" : "NO");
+    printf("Amount of GCE Datas: %d\n", gf->gce.nGceDatas);
+    //printf("Has transparency: %s\n", gf->hasTransparency ? "YES" : "NO");
 
-    if (gf->extCode == GIF_PIC_EXT) {        /* Simple GIF   */
+    if (gf->gce.extCode == GIF_PIC_EXT) {        /* Simple GIF   */
         printf("\n%s--- Image Descriptor ---%s\n", LIGHT_CYAN, NC);
         for (i = 0; i < 10; ++i) {
             c = fgetc(fp);
@@ -165,7 +165,7 @@ int main(int argc, char **argv) {
             gifStructFree(gf);
             return -1;
         }
-    } else if (gf->extCode == GIF_ANIMATION_EXT) { /* Animated GIF */
+    } else if (gf->gce.extCode == GIF_ANIMATION_EXT) { /* Animated GIF */
     } else {
         printf("Not managed for now ... Abort!\n");
         fclose(fp);

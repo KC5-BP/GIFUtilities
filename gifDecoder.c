@@ -34,7 +34,7 @@
 
 /**********************************************************************************/
 struct gifFile *gifStructAllocate(void) {
-	return (struct gifFile *) calloc(1, sizeof(struct gifFile));
+    return (struct gifFile *) calloc(1, sizeof(struct gifFile));
 }
 
 void gifStructFree(struct gifFile *gf) {
@@ -42,7 +42,7 @@ void gifStructFree(struct gifFile *gf) {
     free(gf);
 }
 void gifGetHeader(FILE *fp, struct gifFile *gf) {
-    for (int i = 0; i < GIF_HEADER_SIZE; ++i)
+    for (int i = 0; i < GIF_SIGNATURE_SIZE; ++i)
         gf->header[i] = fgetc(fp);
 }
 
@@ -69,8 +69,8 @@ void gifGetLogicalScreenDescr(FILE *fp, struct gifFile *gf) {
 
     /* *** Global Color Table Descriptor *** */
     gf->lsd.gctInfos = (unsigned char) fgetc(fp);
-    gf->lsd.bitDepth = (gf->lsd.gctInfos & 0x07) + 1;
-    gf->lsd.hasGct   = (gf->lsd.gctInfos & 0x80) >> 7;
+    gf->lsd.bitDepth = (gf->lsd.gctInfos & GIF_BITFIELD_PAL_BITS) + 1;
+    gf->lsd.hasGct   = (gf->lsd.gctInfos & GIF_BITFIELD_CT_PRESENCE) >> CT_PRESENCE_BIT;
 
     /* *** Background Color Index *** */
     gf->lsd.backgroundIndex = (unsigned char) fgetc(fp);
@@ -107,24 +107,27 @@ void gifGetCommonGce(FILE *fp, struct gifFile *gf) {
         exit(-1);
     }
 
-    gf->extCode   = (tagGifExt) getc(fp);
-    gf->nGceDatas = (int) getc(fp);
+    gf->gce.extCode   = (tagGifExt) getc(fp);
+    gf->gce.nGceDatas = (int) getc(fp);
 }
 
 void gifGetSpecificGce(FILE *fp, struct gifFile *gf) {
     unsigned char c;
 
-    if (gf->extCode == GIF_PIC_EXT) {
-        for (int i = 0; i < gf->nGceDatas; ++i) {
+    if (gf->gce.extCode == GIF_PIC_EXT) {
+        for (int i = 0; i < gf->gce.nGceDatas; ++i) {
             c = fgetc(fp);
             switch(i) {
                 case 0:
-                    gf->hasTransparency = c & 0x01;
+                    gf->gce.gceSpecs.gcePic.hasTransparency = \
+										((int) c) & TRANSPARENCY_BIT;
                     break;
                 case 1: case 2: /* Frame delay not used for picture */
-                    gf->frameDelay = c;
+                    gf->gce.gceSpecs.gcePic.frameDelay = (int)c;
                     break;
                 case 3: /* Color number of transparent pixel in GCT */
+                    gf->gce.gceSpecs.gcePic.transpColNbr = (int)c;
+                    break;
                 default:
                     break;
             }
@@ -136,24 +139,22 @@ void gifGetSpecificGce(FILE *fp, struct gifFile *gf) {
             gifStructFree(gf);
             exit(-1);
         }
-    } else if (gf->extCode == GIF_ANIMATION_EXT) {
-        for (int i = 0; i < gf->nGceDatas; ++i) {
+    } else if (gf->gce.extCode == GIF_ANIMATION_EXT) {
+        for (int i = 0; i < GIF_APPLICATION_NAME_SIZE; ++i) {
             c = fgetc(fp);
             switch(i) {
                 case 0:
-                    gf->hasTransparency = c;
                     break;
 
                 case 1:
                     break;
-
             }
-            c = fgetc(fp);
             printf(FMT_BYTE, (unsigned int)c, c);
         }
     }
 }
 
 void gifGetImgDescr(FILE *fp, struct gifFile *gf) {
+    gf->datas.pic.descr.isInterlaced = (gf->datas.pic.descr.lctInfos & GIF_BITFIELD_INTERLACED) >> INTERLACED_BIT;
 }
 
