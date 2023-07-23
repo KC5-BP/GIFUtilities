@@ -38,9 +38,12 @@
 
 #define TRANSPARENCY_BIT    0
 #define GIF_BITFIELD_TRANSPARENCY   0x01
+
 #define GIF_BITFIELD_PAL_BITS       0x07
+
 #define INTERLACED_BIT      6
 #define GIF_BITFIELD_INTERLACED     0x40
+
 #define CT_PRESENCE_BIT     7
 #define GIF_BITFIELD_CT_PRESENCE    0x80
 
@@ -48,8 +51,6 @@
 #define GIF_FRAME_START     ','
 #define GIF_SUBBLOCK_END      0
 #define GIF_EOF             ';'
-
-#define FMT_BYTE            "%02x(%c) "
 
 /**********************************************
  * Type redefinition to ease modulation
@@ -62,7 +63,7 @@ typedef unsigned char color_t;
  * to identify the file type
  *********************************************/
 typedef enum {
-    GIF_PIC_EXT=0xF9, GIF_ANIMATION_EXT=0xFF
+    GIF_PIC_EXT_CODE=0xF9, GIF_ANIM_EXT_CODE=0xFF
 } tagGifExt;
 
 /**********************************************

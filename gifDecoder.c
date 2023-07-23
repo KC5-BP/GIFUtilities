@@ -114,7 +114,7 @@ void gifGetCommonGce(FILE *fp, struct gifFile *gf) {
 void gifGetSpecificGce(FILE *fp, struct gifFile *gf) {
     unsigned char c;
 
-    if (gf->gce.extCode == GIF_PIC_EXT) {
+    if (gf->gce.extCode == GIF_PIC_EXT_CODE) {
         for (int i = 0; i < gf->gce.nGceDatas; ++i) {
             c = fgetc(fp);
             switch(i) {
@@ -139,7 +139,7 @@ void gifGetSpecificGce(FILE *fp, struct gifFile *gf) {
             gifStructFree(gf);
             exit(-1);
         }
-    } else if (gf->gce.extCode == GIF_ANIMATION_EXT) {
+    } else if (gf->gce.extCode == GIF_ANIM_EXT_CODE) {
         for (int i = 0; i < GIF_APPLICATION_NAME_SIZE; ++i) {
             c = fgetc(fp);
             switch(i) {
@@ -149,7 +149,7 @@ void gifGetSpecificGce(FILE *fp, struct gifFile *gf) {
                 case 1:
                     break;
             }
-            printf(FMT_BYTE, (unsigned int)c, c);
+            printf("%02x(%c) ", (unsigned int)c, c);
         }
     }
 }
