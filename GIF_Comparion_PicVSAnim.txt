@@ -1,0 +1,31 @@
+
+Pic                                 Anim
+--- GCE                             --- GCE Frame
+'!'                                 '!'
+F9                                  F9
+4                                   4
+Transparent bit info                Transparent bit info
+Animation delay (not used here)     Animation delay / Frame delay
+Transparent in GCT                  Transparent in GCT
+0 (End of GCE Block)                0 (End of GCE Block)
+
+--- Img Descriptor                  --- Img Descriptor
+','                                 ','
+NW Corner pos.                      NW Corner pos.
+Dims                                Dims
+LCT                                 LCT
+
+--- Img Data                        --- Img Data
+LZW Min code                        LZW Min code
+# Subblocks of data                 # Subblocks of data
+Datas                               Datas
+!= 0 => # Subblocks of data         != 0 => # Subblocks of data
+Datas                               Datas
+...                                 ...
+0 (End of datas)                    0 (End of datas)
+
+                                    Restart from --- GCE Frame for following frames
+                                    ...
+                                    0 (End of datas)
+--- EOF                             --- EOF
+';'                                 ';'
