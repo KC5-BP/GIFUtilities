@@ -50,12 +50,15 @@ typedef int position_t;
 typedef unsigned char color_t;
 
 /**********************************************
+ * GIF Extension code / tag
+ * to identify the file type
  *********************************************/
 typedef enum {
 	GIF_PIC_EXT=0xF9, GIF_ANIMATION_EXT=0xFF
 } tagGifExt;
 
 /**********************************************
+ * Dimension of a frame/picture
  *********************************************/
 struct dimension {
     position_t width;
@@ -63,6 +66,7 @@ struct dimension {
 };
 
 /**********************************************
+ * Position from North-West corner's frame
  *********************************************/
 struct location {
     position_t x;
@@ -70,6 +74,7 @@ struct location {
 };
 
 /**********************************************
+ * RGB Palette
  *********************************************/
 struct rgb {
     color_t r;
@@ -78,6 +83,11 @@ struct rgb {
 };
 
 /**********************************************
+ * Logical Screen Descriptor gives infos on:
+ * - Logical Dimensions
+ * - Global Color Table (GCT)
+ * - Background index in GCT
+ * - Pixel Aspect Ratio
  *********************************************/
 struct logicalScreenDescriptor {
     struct dimension logicDim;
@@ -89,6 +99,8 @@ struct logicalScreenDescriptor {
 };
 
 /**********************************************
+ * Color Table (CT) with number of palettes
+ * (for both Global & Local CT)
  *********************************************/
 struct colorTable {
     int nPal;
@@ -96,33 +108,102 @@ struct colorTable {
 };
 
 /**********************************************
+ * Specifications of a Picture's GCE
  *********************************************/
-struct gceGifPicture {
+struct gcePicture {
+    int transparencyBitFields;
+    int frameDelay; 	/* in hundreth of a second */
+	int transpColNbr;	/* in GCT */
+};
+
+/**********************************************
+ * Specifications of an Animation's GCE
+ *********************************************/
+struct gceAnimation {
+	char appliName[GIF_APPLICATION_NAME_SIZE+1]; /* + '\0' */
+	int nFrames; /* TODO To Be Verified */
+	int currentSubBlockIndex;
+	unsigned int nRepetitions;
+};
+
+/**********************************************
+ * Grouped GCE
+ *********************************************/
+union gceSpecs {
+	struct gcePicture;
+	struct gceAnimation;
+};
+
+/**********************************************
+ * Graphical Control Extension (GCE)
+ *********************************************/
+struct graphicalCtrlExt {
+    tagGifExt extCode;
+    int nGceDatas;
+	union gceSpecs gceSpecs;
+};
+
+/**********************************************
+ *
+ *********************************************/
+struct imgDescriptor {
+	struct location pos;
+	struct dimension dim;
+    unsigned char lctInfos;
+    unsigned char bitDepth : 4;	/* Bit depth -1 => Largest = 7 + 1 */
+    unsigned char hasLct   : 1;
+};
+
+/**********************************************
+ *
+ *********************************************/
+struct imgDatas {
 	
 };
 
 /**********************************************
+ * An Image is composed of:
+ * 		a description & a data sections
  *********************************************/
-struct imgDescriptor {
+struct img {
+	struct imgDescriptor descr;
+	struct imgDatas *datas;
 };
 
 /**********************************************
+ * A Frame is composed of:
+ *		a frame's gce (picture's gce)
+ *		& an image (see structure above)
  *********************************************/
-struct gceGifAnimation {
-	char applicationName[GIF_APPLICATION_NAME_SIZE+1]; /* + '\0' */
+struct frame {
+	struct graphicalCtrlExt gceFrame;
+	struct img;
 };
 
+/**********************************************
+ * A Data is either a simple image
+ * or
+ * A group of Frames (animation GIF usage)
+ *********************************************/
+union data {
+	struct img;
+	struct frame *frames;
+}
 
 /**********************************************
+ * A GIF File is based on the following sections:
+ * - GIF's header / signature
+ * - Logical Screen Descriptor
+ * - Global Color Table
+ * - Graphical Control Extension
+ * - Data (Picture or Animation)
  *********************************************/
 struct gifFile {
     char header[GIF_HEADER_SIZE+1]; /* + '\0' */
 	struct logicalScreenDescriptor lsd;
 	struct colorTable gct;
-    tagGifExt extCode;
-    int nGceDatas;
-    int hasTransparency;
-    int frameDelay; /* in hundreth */
+	struct graphicalCtrlExt gce;
+	union data datas;
 };
 
 /**********************************************
