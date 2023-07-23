@@ -67,16 +67,31 @@ void gifPrintLogicalScreenDescriptor(struct gifFile *gf, int printGct) {
 
 /******************************************************************************/
 void gifPrintGce(struct gifFile *gf) {
-    printf("Extension code: %s\n",  (gf->gceFile.extCode == GIF_PIC_EXT_CODE) ? \
-            (GIF_PIC_EXT_STRING) :                                          \
-            ((gf->gceFile.extCode == GIF_ANIM_EXT_CODE) ? \
-             (GIF_ANIM_EXT_STRING) :                  \
-             ("Unknown extension code")));
-    printf("Amount of GCE Datas: %d\n", gf->gceFile.nGceDatas);
-
     if (gf->gceFile.extCode == GIF_PIC_EXT_CODE) {
+        printf("Extension code: %#02x (%s)\n",  gf->gceFile.extCode, \
+                                                GIF_PIC_EXT_STRING);
+        printf("Amount of GCE Datas: %d\n", gf->gceFile.nGceDatas);
         printf("Has transparency: %s", \
                 gf->gceFile.gceSpecs.gcePic.hasTransparency ? "YES" : "NO");
+        printf("Frame duration: %d[ms]\n", gf->gceFile.gceSpecs.gcePic.frameDelay);
+        printf("Trasparent Color Nbr: %#02x%s", \
+                    gf->gceFile.gceSpecs.gcePic.transpColNbr,
+                    gf->gceFile.gceSpecs.gcePic.transpColNbr ? "\n" : "(None)\n");
+    } else if (gf->gceFile.extCode == GIF_ANIM_EXT_CODE) {
+        printf("Extension code: %#02x (%s)\n",  gf->gceFile.extCode, \
+                                                GIF_ANIM_EXT_STRING);
+        printf("Amount of GCE Datas: %d\n", gf->gceFile.nGceDatas);
+        printf("Application Name: %s\n", gf->gceFile.gceSpecs.gceAnim.appliName);
+        printf("Animation with \"%d\" frames\n", gf->gceFile.gceSpecs.gceAnim.nFrames);
+        printf("Current Sub-block index: %d\n", gf->gceFile.gceSpecs.gceAnim.currentSubBlockIndex);
+        printf("Repetitions: %d\n", gf->gceFile.gceSpecs.gceAnim.nRepetitions);
+    } else {
+        printf("Extension code: %#02x (%s)\n",  gf->gceFile.extCode, \
+                                                "Unknown extension code");
+    }
+
+
+    if (gf->gceFile.extCode == GIF_PIC_EXT_CODE) {
     } else if (gf->gceFile.extCode == GIF_ANIM_EXT_CODE) {
     } else {
     }
