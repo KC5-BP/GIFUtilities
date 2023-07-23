@@ -86,19 +86,19 @@ void gifGetLogicalScreenDescr(FILE *fp, struct gifFile *gf) {
 }
 
 /******************************************************************************/
-void gifGetGct(FILE *fp, struct gifFile *gf) {
-    gf->gct.nPal = pow(2, gf->lsd.bitDepth);
-    gf->gct.palette = (struct rgb *) malloc(gf->gct.nPal * sizeof(struct rgb));
+void gifGetCt(FILE *fp, struct colorTable *ct, unsigned char *bitDepth) {
+    ct->nPal = pow(2, *bitDepth);
+    ct->palette = (struct rgb *) malloc(ct->nPal * sizeof(struct rgb));
 
-    if ( ! gf->gct.palette ) {
+    if ( ! ct->palette ) {
         printf("Failed rgb allocation...\n");
         return;
     }
 
-    for (int i = 0; i < gf->gct.nPal; ++i) {
-        gf->gct.palette[i].r = (unsigned char) getc(fp);
-        gf->gct.palette[i].g = (unsigned char) getc(fp);
-        gf->gct.palette[i].b = (unsigned char) getc(fp);
+    for (int i = 0; i < ct->nPal; ++i) {
+        ct->palette[i].r = (unsigned char) getc(fp);
+        ct->palette[i].g = (unsigned char) getc(fp);
+        ct->palette[i].b = (unsigned char) getc(fp);
     }
 }
 
@@ -164,24 +164,6 @@ void gifGetSpecificGce(FILE *fp, struct gifFile *gf) {
 }
 
 /******************************************************************************/
-void gifGetLct(FILE *fp, struct gifFile *gf) {
-    gf->datas.pic.lct.nPal = pow(2, gf->datas.pic.descr.bitDepth);
-    gf->datas.pic.lct.palette = (struct rgb *) malloc(                      \
-                                gf->datas.pic.lct.nPal * sizeof(struct rgb));
-
-    if ( ! gf->datas.pic.lct.palette ) {
-        printf("Failed rgb allocation...\n");
-        return;
-    }
-
-    for (int i = 0; i < gf->datas.pic.lct.nPal; ++i) {
-        gf->datas.pic.lct.palette[i].r = (unsigned char) getc(fp);
-        gf->datas.pic.lct.palette[i].g = (unsigned char) getc(fp);
-        gf->datas.pic.lct.palette[i].b = (unsigned char) getc(fp);
-    }
-}
-
-/******************************************************************************/
 void gifGetImgDescr(FILE *fp, struct gifFile *gf) {
     unsigned char c;
 
@@ -234,7 +216,9 @@ void gifGetImgDescr(FILE *fp, struct gifFile *gf) {
                     (gf->datas.pic.descr.lctInfos & GIF_BITFIELD_CT_PRESENCE) \
                          >> CT_PRESENCE_BIT;
 
-                if (gf->datas.pic.descr.hasLct) gifGetLct(fp, gf);
+                if (gf->datas.pic.descr.hasLct)
+                    gifGetCt(fp, &gf->datas.pic.lct,        \
+                            &gf->datas.pic.descr.bitDepth);
                 break;
 
             default:

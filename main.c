@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     printf("%s--- Logical Screen Descriptor ---%s\n", LIGHT_CYAN, NC);
     gifGetLogicalScreenDescr(fp, gf);
     if (gf->lsd.hasGct)
-        gifGetGct(fp, gf);
+        gifGetCt(fp, &gf->gct, &gf->lsd.bitDepth);
     //gifPrintLogicalScreenDescriptor(gf, 0);
     gifPrintLogicalScreenDescriptor(gf, 1);
 

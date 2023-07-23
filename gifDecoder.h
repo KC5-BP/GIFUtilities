@@ -101,7 +101,8 @@ struct rgb {
 struct logicalScreenDescriptor {
     struct dimension logicDim;
     unsigned char gctInfos;
-    unsigned char bitDepth : 4; /* Bit depth -1 => Largest = 7 + 1 */
+    //unsigned char bitDepth : 4; /* Bit depth -1 => Largest = 7 + 1 */
+    unsigned char bitDepth; /* Can't pass bit field as arg fn */
     unsigned char hasGct   : 1;
     unsigned char backgroundIndex;
     unsigned char pxAspectRatio;
@@ -159,7 +160,8 @@ struct imgDescriptor {
     struct location pos;
     struct dimension dim;
     unsigned char lctInfos;
-    unsigned char bitDepth     : 4; /* Bit depth -1 => Largest = 7 + 1 */
+    //unsigned char bitDepth     : 4; /* Bit depth -1 => Largest = 7 + 1 */
+    unsigned char bitDepth; /* Can't pass bit field as arg fn */
     unsigned char isInterlaced : 1;
     unsigned char hasLct       : 1;
 };
@@ -239,7 +241,7 @@ void gifGetLogicalScreenDescr(FILE *fp, struct gifFile *gf);
 
 /**********************************************
  *********************************************/
-void gifGetGct(FILE *fp, struct gifFile *gf);
+void gifGetCt(FILE *fp, struct colorTable *ct, unsigned char *bitDepth);
 
 /**********************************************
  *********************************************/
