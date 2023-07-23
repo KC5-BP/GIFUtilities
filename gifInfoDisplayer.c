@@ -37,6 +37,15 @@ void gifPrintSignature(char *fmt, struct gifFile *gf) {
 }
 
 /******************************************************************************/
+void gifPrintCt(struct colorTable *ct) {
+    printf("   -R-   -G-   -B-\n");
+    for (int i = 0; i < ct->nPal; ++i)
+        printf("   x%02X   x%02X   x%02X\n", ct->palette[i].r, \
+                                             ct->palette[i].g, \
+                                             ct->palette[i].b);
+}
+
+/******************************************************************************/
 void gifPrintLogicalScreenDescriptor(struct gifFile *gf, int printGct) {
     printf("Logical dimension: %dx%d\n",    gf->lsd.logicDim.width, \
             gf->lsd.logicDim.height);
@@ -52,11 +61,7 @@ void gifPrintLogicalScreenDescriptor(struct gifFile *gf, int printGct) {
         }
 
         printf("%s--- Global Color Table ---%s\n", LIGHT_CYAN, NC);
-        printf("    -R-    -G-    -B-\n");
-        for (int i = 0; i < gf->gct.nPal; ++i)
-            printf("    x%02X    x%02X    x%02X\n", gf->gct.palette[i].r, \
-                    gf->gct.palette[i].g, \
-                    gf->gct.palette[i].b);
+        gifPrintCt(&gf->gct);
     }
 }
 
@@ -70,7 +75,7 @@ void gifPrintGce(struct gifFile *gf) {
     printf("Amount of GCE Datas: %d\n", gf->gce.nGceDatas);
 
     if (gf->gce.extCode == GIF_PIC_EXT_CODE) {
-        printf("Has transparency: %s\n", \
+        printf("Has transparency: %s", \
                 gf->gce.gceSpecs.gcePic.hasTransparency ? "YES" : "NO");
     } else if (gf->gce.extCode == GIF_ANIM_EXT_CODE) {
     } else {
@@ -91,5 +96,5 @@ void gifPrintImgDescr(struct gifFile *gf) {
     printf("Local Color Table infos: %#02x\n", gf->datas.pic.descr.lctInfos);
     printf("'-> Bit depth: %d\n", gf->datas.pic.descr.bitDepth);
     printf("'-> Pic is interlaced: %s\n", gf->datas.pic.descr.isInterlaced ? "YES" : "NO");
-    printf("'-> Presence of a LCT: %s\n", gf->datas.pic.descr.hasLct ? "YES" : "NO");
+    printf("'-> Presence of a LCT: %s", gf->datas.pic.descr.hasLct ? "YES" : "NO");
 }

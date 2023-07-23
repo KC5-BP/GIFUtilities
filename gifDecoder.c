@@ -171,7 +171,6 @@ void gifGetImgDescr(FILE *fp, struct gifFile *gf) {
         switch (i) {
             case 0: /* Image descriptor start ',' */
 				c = fgetc(fp);
-                printf("\n");
                 break;
 
             case 1: /* From North-West position: X */
@@ -198,7 +197,6 @@ void gifGetImgDescr(FILE *fp, struct gifFile *gf) {
 
             case 6: /* Local color table bit */
 				c = fgetc(fp);
-                printf("\n");
                 gf->datas.pic.descr.lctInfos = c;
                 gf->datas.pic.descr.bitDepth = \
                     (gf->datas.pic.descr.lctInfos & GIF_BITFIELD_PAL_BITS) + 1;
@@ -217,7 +215,6 @@ void gifGetImgDescr(FILE *fp, struct gifFile *gf) {
                 break;
 
             default:
-                printf("\n");
                 break;
         }
     }
