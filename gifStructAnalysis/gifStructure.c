@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <errno.h>
+#include <string.h>
 
 #define SAVE_CURRENT_FILE_POS(FP)	\
 	fpos_t curPos;					\
@@ -137,9 +139,14 @@ int gifCountImgDatasSubBlocks(FILE *fp, fpos_t *imgDataPos, int *lastSize) {
 	printf("%s: %#02x(%c)\n", __func__, (unsigned char)c, c);
 	while (c) {
 		++nSubBlocks;
-		fseek(fp, c, SEEK_CUR);
+		printf("fseek of: %#02x(%c) ", (unsigned char)c, c);
+		int rc = fseek(fp, (long int)c, SEEK_CUR);
+		if ( rc ) {
+			printf("fssek failed!! (%s)\n", strerror(errno));
+		}
 		*lastSize = c;
 		c = fgetc(fp);
+		printf("fseek of: %#02x(%c) ", (unsigned char)c, c);
 	}
 	return nSubBlocks;
 }
