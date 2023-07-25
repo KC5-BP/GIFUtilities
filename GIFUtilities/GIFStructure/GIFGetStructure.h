@@ -1,6 +1,6 @@
 
-#ifndef __GIF_GET_STRUCTURE__
-#define __GIF_GET_STRUCTURE__
+#ifndef __GIF_GET_STRUCTURE_H__
+#define __GIF_GET_STRUCTURE_H__
 
 #include <stdio.h>
 #include <inttypes.h>
@@ -49,5 +49,5 @@ void gifFreeStructure(struct gifStructure *gs);
 
 int gifGetFileStructure(FILE *fp, struct gifStructure *gs);
 
-#endif /* __GIF_GET_STRUCTURE__ */
+#endif /* __GIF_GET_STRUCTURE_H__ */
 
