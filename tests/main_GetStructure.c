@@ -52,41 +52,6 @@ int main(int argc, char **argv) {
 		GIFPrintData(&gs);
 		printf("\n");
 
-		/*printf("-- Header\n");
-		printf("'-> Start byte: %#02x(%c)\n", ARF(gs.header.startByte));
-		printf("'-> Size: %d\n", gs.header.subBlockSize);
-
-		printf("-- Logical Screen Descriptor\n");
-		printf("'-> Start byte: %#02x(%c)\n", ARF(gs.lsd.startByte));
-		printf("'-> Size: %d\n", gs.lsd.subBlockSize);
-
-		if (gs.hasGct) {
-			printf("'-> Presence of a Global Color Table (GCT)\n");
-			printf("   '-> Start byte: %#02x(%c)\n", ARF(gs.gct->startByte));
-			printf("   '-> Size: %d\n", gs.gct->subBlockSize);
-		} else {
-			printf("'-> No Global Color Table (GCT)\n");
-		}
-
-		printf("-- GCE\n");
-		printf("'-> Starting byte: %#02x(%c)\n", 							\
-				ARF(gs.dataComposition.imgFrame.gce.startByte));
-		printf("'-> Size: %d\n", gs.dataComposition.imgFrame.gce.subBlockSize);
-
-		printf("-- Img Descriptor\n");
-		printf("'-> Starting byte: %#02x(%c)\n", 			\
-				ARF(gs.dataComposition.imgFrame.imgDescriptor.startByte));
-		if (gs.dataComposition.imgFrame.hasLct) {
-			printf("'-> Size: %d (%d + %d from LCT)\n", 								 \
-					gs.dataComposition.imgFrame.imgDescriptor.subBlockSize + \
-					gs.dataComposition.imgFrame.lct->subBlockSize, 			 \
-					gs.dataComposition.imgFrame.imgDescriptor.subBlockSize,  \
-					gs.dataComposition.imgFrame.lct->subBlockSize);
-		} else {
-			printf("'-> Size: %d (without LCT)\n", 							 \
-					gs.dataComposition.imgFrame.imgDescriptor.subBlockSize);
-		}*/
-
 		printf("-- Img Datas\n");
 		printf("'-> LZW Minimum Code\n");
 		printf("   '-> Starting byte: %#02x(%c)\n", 						 \
