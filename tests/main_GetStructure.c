@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <inttypes.h>
-#include "../GIFUtilities/GIFUtilities.h"
+//#include "../GIFUtilities/GIFUtilities.h"
+#include "../GIFUtilities/GIFStructure/GIFGetStructure.h"
+#include "../GIFUtilities/GIFStructure/GIFPrintStructure.h"
 
 #define ARF(VAR) (unsigned char)VAR, (unsigned char)VAR
 
@@ -38,7 +40,19 @@ int main(int argc, char **argv) {
 
 	if (gs.extCode == GIF_PIC_EXT_CODE) {
 		printf("--- Simple Frame ---\n");
-		printf("-- Header\n");
+		GIFPrintHeader(&gs);
+		printf("\n");
+
+		GIFPrintLsd(&gs);
+		printf("\n");
+
+		GIFPrintGct(&gs);
+		printf("\n");
+
+		GIFPrintData(&gs);
+		printf("\n");
+
+		/*printf("-- Header\n");
 		printf("'-> Start byte: %#02x(%c)\n", ARF(gs.header.startByte));
 		printf("'-> Size: %d\n", gs.header.subBlockSize);
 
@@ -71,7 +85,7 @@ int main(int argc, char **argv) {
 		} else {
 			printf("'-> Size: %d (without LCT)\n", 							 \
 					gs.dataComposition.imgFrame.imgDescriptor.subBlockSize);
-		}
+		}*/
 
 		printf("-- Img Datas\n");
 		printf("'-> LZW Minimum Code\n");

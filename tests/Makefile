@@ -30,7 +30,7 @@ CPYFLAGS =-O binary
 #SRC=$(wildcard *.c)
 SRC=$(wildcard *.c)
 SRC_FOLDER=../GIFUtilities
-SRC_STRUCT=$(SRC_FOLDER)/GIFStructure/GIFGetStructure.c
+SRC_STRUCT=$(SRC_FOLDER)/GIFStructure/GIFGetStructure.c $(SRC_FOLDER)/GIFStructure/GIFPrintStructure.c
 
 ################
 # Object files #
@@ -55,5 +55,5 @@ $(EXE_STRUCT): main_GetStructure.c $(SRC_STRUCT)
 	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
-	rm -rf $(EXE)
+	rm -rf $(EXE_STRUCT)
 
