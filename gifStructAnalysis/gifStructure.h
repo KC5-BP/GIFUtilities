@@ -3,6 +3,7 @@
 #define __GIF_STRUCTURE__
 
 #include <stdio.h>
+#include <inttypes.h>
 
 /* HEADER */
 #define GIF_HEADER_SIZE 6
@@ -39,8 +40,8 @@ typedef enum {
 
 struct sectionInfos {
 	fpos_t pos;
-	int subBlockSize; /* in Bytes */
-	char startByte;
+	uint32_t subBlockSize; /* in Bytes */
+	uint8_t startByte;
 };
 
 struct imgDatasSection {
@@ -51,13 +52,13 @@ struct imgDatasSection {
 struct frameSections {
 	struct sectionInfos gce;
 	struct sectionInfos imgDescriptor;
-	char hasLct;
+	uint8_t hasLct;
 	struct sectionInfos *lct; /* Pointer because it is optionnal */
 	struct imgDatasSection imgDatas;
 };
 
 struct animSections {
-	int nFrames;
+	uint32_t nFrames;
 	struct sectionInfos animGce;
 	struct frameSections *animFrames;
 };
@@ -70,7 +71,7 @@ union dataSection {
 struct gifStructure {
 	struct sectionInfos header;
 	struct sectionInfos lsd;
-	char hasGct;
+	uint8_t hasGct;
 	struct sectionInfos *gct; /* Pointer because it is optionnal */
 	gifExtCode extCode;
 	union dataSection dataComposition;

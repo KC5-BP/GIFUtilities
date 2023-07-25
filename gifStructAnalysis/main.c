@@ -2,13 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <inttypes.h>
 #include "gifStructure.h"
 
 #define ARF(VAR) (unsigned char)VAR, (unsigned char)VAR
 
 int main(int argc, char **argv) {
 	char *fPath;
-	char c;
+	uint8_t c;
 	FILE *fp;
 	fpos_t tmpPos;
 	struct gifStructure gs;
@@ -110,7 +111,7 @@ int main(int argc, char **argv) {
 			printf("   '-> [%02d] Starting byte: %#02x(%c)\n", i,			   \
 			ARF(gs.dataComposition.imgFrame.imgDatas.rawDatas[i].startByte));
 			printf("   '-> [%02d] Size: %d\n", i,			   				   \
-			(unsigned char)gs.dataComposition.imgFrame.imgDatas.rawDatas[i].subBlockSize);
+			gs.dataComposition.imgFrame.imgDatas.rawDatas[i].subBlockSize);
 		}
 
 		printf("-- Trailer\n");

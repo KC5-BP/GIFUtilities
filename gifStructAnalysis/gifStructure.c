@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <inttypes.h>
+
 #include <errno.h>
 #include <string.h>
 
@@ -42,7 +44,7 @@ void gifGetLSDInfos(FILE *fp, struct gifStructure *gs) {
 	RESTORE_CURRENT_FILE_POS(fp);
 }
 
-int ctAllocation(FILE *fp, char byte, char *hasCt, struct sectionInfos **ct, char offset) {
+int ctAllocation(FILE *fp, uint8_t byte, uint8_t *hasCt, struct sectionInfos **ct, uint8_t offset) {
 	int rc = 0;
 
 	*hasCt = (byte & 0x80) >> 7;
@@ -67,7 +69,7 @@ int ctAllocation(FILE *fp, char byte, char *hasCt, struct sectionInfos **ct, cha
 
 int gifGetGCTInfos(FILE *fp, struct gifStructure *gs) {
 	int rc;
-	char byte;
+	uint8_t byte;
 
 	SAVE_CURRENT_FILE_POS(fp);
 
@@ -87,7 +89,7 @@ int gifGetGCTInfos(FILE *fp, struct gifStructure *gs) {
 
 int gifGetExtCode(FILE *fp, struct gifStructure *gs) {
 	volatile int rc = 0;
-	char c;
+	uint8_t c;
 	fpos_t tmpPos;
 
 	SAVE_CURRENT_FILE_POS(fp);
@@ -125,10 +127,10 @@ void gifGetGceInfos(FILE *fp, gifExtCode extCode, struct sectionInfos *gceSectio
 	gceSection->startByte = fgetc(fp);
 }
 
-int gifCountImgDatasSubBlocks(FILE *fp, fpos_t *imgDataPos, int *lastSize) {
-	char c;
+int gifCountImgDatasSubBlocks(FILE *fp, fpos_t *imgDataPos, uint32_t *lastSize) {
+	uint8_t c;
 	long int cConverted = 0;
-	int nSubBlocks = 0;
+	uint32_t nSubBlocks = 0;
 
 	/* Get to Img Data beginning */
 	fsetpos(fp, imgDataPos);
@@ -142,7 +144,8 @@ int gifCountImgDatasSubBlocks(FILE *fp, fpos_t *imgDataPos, int *lastSize) {
 		cConverted = (long int)c;
 		cConverted &= 0xFF;
 		//printf("%s: %#0lx(%ld)\n", __func__, (unsigned char)cConverted, cConverted);
-		int rc = fseek(fp, cConverted, SEEK_CUR);
+		//int rc = fseek(fp, cConverted, SEEK_CUR);
+		int rc = fseek(fp, c, SEEK_CUR);
 		if ( rc ) {
 			printf("fssek failed!! (%s)\n", strerror(errno));
 		}
@@ -158,7 +161,7 @@ int gifCountAnimFrames(FILE *fp, ...) {
 
 int gifGetFrameInfos(FILE *fp, struct gifStructure *gs, struct frameSections *fs) {
 	volatile int rc = 0;
-	char byte;
+	uint8_t byte;
 	fpos_t tmpPos;
 
 	gifGetGceInfos(fp, gs->extCode, &fs->gce);
@@ -194,10 +197,13 @@ int gifGetFrameInfos(FILE *fp, struct gifStructure *gs, struct frameSections *fs
 		fs->imgDatas.lzwMinCode.pos = tmpPos;
 		fs->imgDatas.lzwMinCode.startByte = fgetc(fp);
 		
-		int lastBlockSize;
-		int subBlocks = gifCountImgDatasSubBlocks(fp, &tmpPos, &lastBlockSize);
-		//fs->imgDatas.subBlockSize = (subBlocks-1) * 255 + lastBlockSize;
+		uint32_t lastBlockSize;
+		uint32_t subBlocks = gifCountImgDatasSubBlocks(fp, &tmpPos, &lastBlockSize);
 		fs->imgDatas.lzwMinCode.subBlockSize = subBlocks;
+
+		gs->trailer.subBlockSize = 1;
+		fgetpos(fp, &gs->trailer.pos);
+		gs->trailer.startByte = fgetc(fp);
 
 		/* Allocate each sectionInfos */
 		fs->imgDatas.rawDatas = (struct sectionInfos *) calloc(subBlocks, sizeof(struct sectionInfos));
@@ -222,17 +228,6 @@ int gifGetFrameInfos(FILE *fp, struct gifStructure *gs, struct frameSections *fs
 				fgetpos(fp, &tmpPos);
 				byte = fgetc(fp);
 			}
-		}
-		
-		fseek(fp, 1, SEEK_CUR); /* Skip end of sub-blocks (0x00) */
-
-		gs->trailer.subBlockSize = 1;
-		fgetpos(fp, &gs->trailer.pos);
-		gs->trailer.startByte = fgetc(fp);
-
-		for (int i = 0; i < 4; ++i) {
-			byte = fgetc(fp);
-			printf("%#02x(%c) ", (unsigned char)byte, byte);
 		}
 	}
 	return rc;
