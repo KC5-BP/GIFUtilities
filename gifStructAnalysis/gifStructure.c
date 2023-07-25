@@ -255,6 +255,46 @@ int gifGetDatasInfos(FILE *fp, struct gifStructure *gs) {
 	return rc;
 }
 
+int gifGetFileStructure(FILE *fp, struct gifStructure *gs) {
+	uint32_t rc;
+	fpos_t inbetweenPos;
+
+	/* *** Header *** */
+	gifGetHeaderInfos(fp, gs);
+
+	/* *** Logical Screen Descriptor (LSD) *** */
+	gifGetLSDInfos(fp, gs);
+
+	/* *** Global Color Table (GCT) *** */
+	rc = gifGetGCTInfos(fp, gs);
+	if (rc)	return rc;
+
+	if (gs->hasGct) {
+		/* Go to GCT beginning */
+		fsetpos(fp, &gs->gct->pos);
+
+		/* Skip table */
+		fseek(fp, gs->gct->subBlockSize, SEEK_CUR);
+	} else {
+		/* Go to LSD beginning */
+		fsetpos(fp, &gs->lsd.pos);
+
+		/* Skip LSD */
+		fseek(fp, GIF_LSD_SIZE, SEEK_CUR);
+	}
+
+	/* *** Global Control Extension (GCE) *** */
+	fgetpos(fp, &inbetweenPos); /* Save temporarily position */
+
+	/* Firstly, read extension code (is it an IMG or an ANIMATION?) */
+	rc = gifGetExtCode(fp, gs);
+	if (rc)	return rc;
+
+	/* Then, get file composition infos */
+	fsetpos(fp, &inbetweenPos);
+	gifGetDatasInfos(fp, gs);
+}
+
 /*printf("%s: starting byte: \n", __func__);
 for (int i = 0; i < 4; ++i) {
 	byte = fgetc(fp);

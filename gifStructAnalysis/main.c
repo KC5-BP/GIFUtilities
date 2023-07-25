@@ -29,37 +29,7 @@ int main(int argc, char **argv) {
 	}
 
 	printf("--- Start reading file ---\n");
-	gifGetHeaderInfos(fp, &gs);
-
-	/* Skip header from beginning (given by SEEK_SET) */
-	gifGetLSDInfos(fp, &gs);
-
-	rc = gifGetGCTInfos(fp, &gs);
-	if ( ! rc ) {
-		if (gs.hasGct) {
-			fsetpos(fp, &gs.gct->pos);
-			fseek(fp, gs.gct->subBlockSize, SEEK_CUR);
-		} else {
-			fsetpos(fp, &gs.lsd.pos);
-			fseek(fp, GIF_LSD_SIZE, SEEK_CUR);
-		}
-	} else {
-		printf("Failure during allocation... Abort!\n");
-		fclose(fp);
-		return -1;
-	}
-
-	fgetpos(fp, &tmpPos);
-	rc = gifGetExtCode(fp, &gs);
-	if (rc) {
-		printf("First char sequence not as expected... Abort!\n");
-		free(gs.gct);
-		fclose(fp);
-		return -1;
-	}
-
-	fsetpos(fp, &tmpPos);
-	gifGetDatasInfos(fp, &gs);
+	gifGetFileStructure(fp, &gs);
 
 	if (gs.extCode == GIF_PIC_EXT_CODE) {
 		printf("--- Simple Frame ---\n");

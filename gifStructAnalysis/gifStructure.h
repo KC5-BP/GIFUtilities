@@ -88,5 +88,7 @@ int gifGetExtCode(FILE *fp, struct gifStructure *gs);
 
 int gifGetDatasInfos(FILE *fp, struct gifStructure *gs);
 
+int gifGetFileStructure(FILE *fp, struct gifStructure *gs);
+
 #endif /* __GIF_STRUCTURE__ */
 
