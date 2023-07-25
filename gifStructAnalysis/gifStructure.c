@@ -17,6 +17,20 @@
 	/* Return to current position */	\
 	fsetpos(FP, &curPos)
 
+void gifFreeStructure(struct gifStructure *gs) {
+	free(gs->gct);
+	if (gs->extCode == GIF_PIC_EXT_CODE) {
+		free(gs->dataComposition.imgFrame.lct);
+		free(gs->dataComposition.imgFrame.imgDatas.rawDatas);
+	} else if (gs->extCode == GIF_ANIM_EXT_CODE) {
+		for (int i = 0; i < gs->dataComposition.animFrames.nFrames; i++) {
+			free(gs->dataComposition.animFrames.animFrames[i].lct);
+			free(gs->dataComposition.animFrames.animFrames[i].imgDatas.rawDatas);
+		}
+		free(gs->dataComposition.animFrames.animFrames);
+	}
+}
+
 int gifGetHeaderInfos(FILE *fp, struct gifStructure *gs) {
 	SAVE_CURRENT_FILE_POS(fp);
 
@@ -256,7 +270,7 @@ int gifGetDatasInfos(FILE *fp, struct gifStructure *gs) {
 }
 
 int gifGetFileStructure(FILE *fp, struct gifStructure *gs) {
-	uint32_t rc;
+	uint32_t rc = 0;
 	fpos_t inbetweenPos;
 
 	/* *** Header *** */
@@ -293,6 +307,8 @@ int gifGetFileStructure(FILE *fp, struct gifStructure *gs) {
 	/* Then, get file composition infos */
 	fsetpos(fp, &inbetweenPos);
 	gifGetDatasInfos(fp, gs);
+
+	return rc;
 }
 
 /*printf("%s: starting byte: \n", __func__);

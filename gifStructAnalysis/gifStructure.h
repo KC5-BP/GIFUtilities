@@ -78,15 +78,7 @@ struct gifStructure {
 	struct sectionInfos trailer;
 };
 
-int gifGetHeaderInfos(FILE *fp, struct gifStructure *gs);
-
-void gifGetLSDInfos(FILE *fp, struct gifStructure *gs);
-
-int gifGetGCTInfos(FILE *fp, struct gifStructure *gs);
-
-int gifGetExtCode(FILE *fp, struct gifStructure *gs);
-
-int gifGetDatasInfos(FILE *fp, struct gifStructure *gs);
+void gifFreeStructure(struct gifStructure *gs);
 
 int gifGetFileStructure(FILE *fp, struct gifStructure *gs);
 

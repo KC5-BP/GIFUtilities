@@ -9,9 +9,7 @@
 
 int main(int argc, char **argv) {
 	char *fPath;
-	uint8_t c;
 	FILE *fp;
-	fpos_t tmpPos;
 	struct gifStructure gs;
 	int rc;
 
@@ -29,7 +27,14 @@ int main(int argc, char **argv) {
 	}
 
 	printf("--- Start reading file ---\n");
-	gifGetFileStructure(fp, &gs);
+	rc = gifGetFileStructure(fp, &gs);
+
+	if (rc) {
+		gifFreeStructure(&gs);
+		fclose(fp);
+		printf("Error occured, aborting program!\n");
+		return rc;
+	}
 
 	if (gs.extCode == GIF_PIC_EXT_CODE) {
 		printf("--- Simple Frame ---\n");
@@ -94,8 +99,7 @@ int main(int argc, char **argv) {
 				gs.dataComposition.imgFrame.gce.startByte);
 	}
 
-
-	free(gs.gct);
+	gifFreeStructure(&gs);
 	fclose(fp);
 	printf("--- Stop reading file ---\n");
 
