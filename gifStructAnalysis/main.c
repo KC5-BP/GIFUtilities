@@ -1,96 +1,132 @@
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
+#include "gifStructure.h"
 
-typedef enum {
-	GIF_PIC_EXT_CODE=0xF9, GIF_ANIM_EXT_CODE=0xFF
-} gifExtCode;
-
-struct sectionInfos {
-	fpos_t pos;
-	int subBlockSize; /* in Bytes */
-	char startByte;
-};
-
-struct imgDatasSection {
-	struct sectionInfos lzwMinCode;
-	int nSubBlocks;
-	struct sectionInfos *rawDatas;
-};
-
-struct frameSections {
-	struct sectionInfos gce;
-	struct sectionInfos imgDescriptor;
-	struct imgDatasSection imgDatas;
-};
-
-union dataSections {
-	struct frameSections imgFrame;
-	struct frameSections *animFrames;
-};
-
-struct gifSections {
-	struct sectionInfos header;
-	struct sectionInfos lsd;
-	struct sectionInfos gct;
-	gifExtCode extCode;
-	union dataSections;
-};
+#define ARF(VAR) (unsigned char)VAR, (unsigned char)VAR
 
 int main(int argc, char **argv) {
-	FILE *fp;
 	char *fPath;
 	char c;
-	struct gifSections gs;
+	FILE *fp;
+	fpos_t tmpPos;
+	struct gifStructure gs;
+	int rc;
 
 	if (argc < 2) {
-        printf("File to open not given... Aborted!\n");
-        return -1;
-    }
-
-    fPath = argv[1];
-    fp = fopen(fPath, "r");
-
-    if ( ! fp ) {
-        printf("Couldn't open \"%s\"\n", fPath);
-        return -1;
-    }
-
-    printf("--- Start reading file ---\n");
-	fgetpos(fp, &gs.header.pos);
-	gs.header.subBlockSize = 6;
-	gs.header.startByte = fgetc(fp);
-	printf("Read '%c' expected '%c'\n", gs.header.startByte, 'G');
-
-	/* Skip header from beginning, given by SEEK_SET */
-	fseek(fp, gs.header.subBlockSize, SEEK_SET);
-	fgetpos(fp, &gs.lsd.pos);
-	gs.lsd.subBlockSize = 7;
-	gs.lsd.startByte = fgetc(fp); /* Expected 1st Width byte */
-	printf("Read '%#02x' expected '%#02x' (with ../pics/img_2x2.gif)\n", gs.lsd.startByte, 2);
-
-	/* Skip remaining Width byte + Height bytes to reach GCT's */
-	fseek(fp, 3, SEEK_CUR);
-	c = fgetc(fp);
-	gs.gct.subBlockSize = pow(2, (c & 0x07) + 1);
-	/* Skip Background + Transparent */
-	fseek(fp, 2, SEEK_CUR);
-	fgetpos(fp, &gs.gct.pos);
-	gs.gct.startByte = fgetc(fp); /* Expected 1st color RED byte (with order RGB) */
-	printf("Read '%#02x' expected '%#02x' (with ../pics/img_2x2.gif)\n", gs.gct.startByte, 0);
-
-	if (gs.gct.subBlockSize) {
-		printf("Present of a GCT, skipping it...\n");
-		fseek(fp, gs.gct.subBlockSize * 3 - 1, SEEK_CUR);
+		printf("File to open not given... Aborted!\n");
+		return -1;
 	}
-	
-	if ()
 
-	c = fgetc(fp);
-	printf("Read '%#02x'(%c) expected '%c' (with ../pics/img_2x2.gif)\n", c, c, '!');
+	fPath = argv[1];
+	fp = fopen(fPath, "r");
 
+	if ( ! fp ) {
+		printf("Couldn't open \"%s\"\n", fPath);
+		return -1;
+	}
+
+	printf("--- Start reading file ---\n");
+	gifGetHeaderInfos(fp, &gs);
+
+	/* Skip header from beginning (given by SEEK_SET) */
+	gifGetLSDInfos(fp, &gs);
+
+	rc = gifGetGCTInfos(fp, &gs);
+	if ( ! rc ) {
+		if (gs.hasGct) {
+			fsetpos(fp, &gs.gct->pos);
+			fseek(fp, gs.gct->subBlockSize, SEEK_CUR);
+		} else {
+			fsetpos(fp, &gs.lsd.pos);
+			fseek(fp, GIF_LSD_SIZE, SEEK_CUR);
+		}
+	} else {
+		printf("Failure during allocation... Abort!\n");
+		fclose(fp);
+		return -1;
+	}
+
+	fgetpos(fp, &tmpPos);
+	rc = gifGetExtCode(fp, &gs);
+	if (rc) {
+		printf("First char sequence not as expected... Abort!\n");
+		free(gs.gct);
+		fclose(fp);
+		return -1;
+	}
+
+	fsetpos(fp, &tmpPos);
+	gifGetDatasInfos(fp, &gs);
+
+	if (gs.extCode == GIF_PIC_EXT_CODE) {
+		printf("--- Simple Frame ---\n");
+		printf("-- Header\n");
+		printf("'-> Start byte: %#02x(%c)\n", ARF(gs.header.startByte));
+		printf("'-> Size: %d\n", gs.header.subBlockSize);
+
+		printf("-- Logical Screen Descriptor\n");
+		printf("'-> Start byte: %#02x(%c)\n", ARF(gs.lsd.startByte));
+		printf("'-> Size: %d\n", gs.lsd.subBlockSize);
+
+		if (gs.hasGct) {
+			printf("'-> Presence of a Global Color Table (GCT)\n");
+			printf("   '-> Start byte: %#02x(%c)\n", ARF(gs.gct->startByte));
+			printf("   '-> Size: %d\n", gs.gct->subBlockSize);
+		} else {
+			printf("'-> No Global Color Table (GCT)\n");
+		}
+
+		printf("-- GCE\n");
+		printf("'-> Starting byte: %#02x(%c)\n", 							\
+				ARF(gs.dataComposition.imgFrame.gce.startByte));
+		printf("'-> Size: %d\n", gs.dataComposition.imgFrame.gce.subBlockSize);
+
+		printf("-- Img Descriptor\n");
+		printf("'-> Starting byte: %#02x(%c)\n", 			\
+				ARF(gs.dataComposition.imgFrame.imgDescriptor.startByte));
+		if (gs.dataComposition.imgFrame.hasLct) {
+			printf("'-> Size: %d (%d + %d from LCT)\n", 								 \
+					gs.dataComposition.imgFrame.imgDescriptor.subBlockSize + \
+					gs.dataComposition.imgFrame.lct->subBlockSize, 			 \
+					gs.dataComposition.imgFrame.imgDescriptor.subBlockSize,  \
+					gs.dataComposition.imgFrame.lct->subBlockSize);
+		} else {
+			printf("'-> Size: %d (without LCT)\n", 							 \
+					gs.dataComposition.imgFrame.imgDescriptor.subBlockSize);
+		}
+
+		printf("-- Img Datas\n");
+		printf("'-> LZW Minimum Code\n");
+		printf("   '-> Starting byte: %#02x(%c)\n", 						 \
+				ARF(gs.dataComposition.imgFrame.imgDatas.lzwMinCode.startByte));
+		printf("   '-> Datas splitted in: %d sub-blocks\n", 				 \
+				gs.dataComposition.imgFrame.imgDatas.lzwMinCode.subBlockSize);
+		printf("'-> Raw datas\n");
+		for (int i = 0; 													   \
+			 i < gs.dataComposition.imgFrame.imgDatas.lzwMinCode.subBlockSize; \
+			 ++i) {
+			printf("   '-> [%02d] Starting byte: %#02x(%c)\n", i,			   \
+			ARF(gs.dataComposition.imgFrame.imgDatas.rawDatas[i].startByte));
+			printf("   '-> [%02d] Size: %d\n", i,			   				   \
+			(unsigned char)gs.dataComposition.imgFrame.imgDatas.rawDatas[i].subBlockSize);
+		}
+
+		printf("-- Trailer\n");
+		printf("'-> Start byte: %#02x(%c)\n", ARF(gs.trailer.startByte));
+		printf("'-> Size: %d\n", gs.trailer.subBlockSize);
+	} else if (gs.extCode == GIF_ANIM_EXT_CODE) {
+		printf("--- Animated GIF ---\n");
+		printf("GCE\n'-> Starting byte: %#02x(%c)\n", 		\
+				gs.dataComposition.imgFrame.gce.startByte,	\
+				gs.dataComposition.imgFrame.gce.startByte);
+	}
+
+
+	free(gs.gct);
 	fclose(fp);
-    printf("--- Stop reading file ---\n");
+	printf("--- Stop reading file ---\n");
 
 	return 0;
 }
