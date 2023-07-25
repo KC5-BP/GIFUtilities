@@ -127,6 +127,7 @@ void gifGetGceInfos(FILE *fp, gifExtCode extCode, struct sectionInfos *gceSectio
 
 int gifCountImgDatasSubBlocks(FILE *fp, fpos_t *imgDataPos, int *lastSize) {
 	char c;
+	long int cConverted = 0;
 	int nSubBlocks = 0;
 
 	/* Get to Img Data beginning */
@@ -136,17 +137,17 @@ int gifCountImgDatasSubBlocks(FILE *fp, fpos_t *imgDataPos, int *lastSize) {
 	fseek(fp, 1, SEEK_CUR);
 
 	c = fgetc(fp);
-	printf("%s: %#02x(%c)\n", __func__, (unsigned char)c, c);
 	while (c) {
 		++nSubBlocks;
-		printf("fseek of: %#02x(%c) ", (unsigned char)c, c);
-		int rc = fseek(fp, (long int)c, SEEK_CUR);
+		cConverted = (long int)c;
+		cConverted &= 0xFF;
+		//printf("%s: %#0lx(%ld)\n", __func__, (unsigned char)cConverted, cConverted);
+		int rc = fseek(fp, cConverted, SEEK_CUR);
 		if ( rc ) {
 			printf("fssek failed!! (%s)\n", strerror(errno));
 		}
 		*lastSize = c;
 		c = fgetc(fp);
-		printf("fseek of: %#02x(%c) ", (unsigned char)c, c);
 	}
 	return nSubBlocks;
 }
@@ -209,12 +210,12 @@ int gifGetFrameInfos(FILE *fp, struct gifStructure *gs, struct frameSections *fs
 
 			fgetpos(fp, &tmpPos);
 			byte = fgetc(fp);
-			printf("%s: %#02x(%c)\n", __func__, (unsigned char)byte, byte);
 			for (int i = 0; i < subBlocks; ++i) {
 				fs->imgDatas.rawDatas[i].pos = tmpPos;
 				fs->imgDatas.rawDatas[i].startByte = byte;
 				fs->imgDatas.rawDatas[i].subBlockSize = ((int)byte) + 1;
 
+				printf("%s: %#02x(%c)\n", __func__, (unsigned char)byte, byte);
 				fseek(fp, byte - 1, SEEK_CUR);
 				//fseek(fp, byte, SEEK_CUR);
 
