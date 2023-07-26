@@ -215,10 +215,6 @@ int gifGetFrameInfos(FILE *fp, struct gifStructure *gs, struct frameSections *fs
 		uint32_t subBlocks = gifCountImgDatasSubBlocks(fp, &tmpPos, &lastBlockSize);
 		fs->imgDatas.lzwMinCode.subBlockSize = subBlocks;
 
-		gs->trailer.subBlockSize = 1;
-		fgetpos(fp, &gs->trailer.pos);
-		gs->trailer.startByte = fgetc(fp);
-
 		/* Allocate each sectionInfos */
 		fs->imgDatas.rawDatas = (struct sectionInfos *) calloc(subBlocks, sizeof(struct sectionInfos));
 		
@@ -236,13 +232,16 @@ int gifGetFrameInfos(FILE *fp, struct gifStructure *gs, struct frameSections *fs
 				fs->imgDatas.rawDatas[i].subBlockSize = ((int)byte) + 1;
 
 				printf("%s: %#02x(%c)\n", __func__, (unsigned char)byte, byte);
-				fseek(fp, byte - 1, SEEK_CUR);
-				//fseek(fp, byte, SEEK_CUR);
+				fseek(fp, byte, SEEK_CUR);
 
 				fgetpos(fp, &tmpPos);
 				byte = fgetc(fp);
 			}
 		}
+
+		gs->trailer.subBlockSize = 1;
+		fgetpos(fp, &gs->trailer.pos);
+		gs->trailer.startByte = fgetc(fp);
 	}
 	return rc;
 }
