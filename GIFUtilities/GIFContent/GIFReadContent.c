@@ -27,25 +27,27 @@
 ==============================================================================>
 ============================================================================ */
 
-#include "gifDecoder.h"
+#include "GIFReadContent.h"
+#include "../GIFDefines.h"
+#include "../GIFStructure/GIFGetStructure.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
 /******************************************************************************/
-struct gifFile *gifStructAllocate(void) {
-    return (struct gifFile *) calloc(1, sizeof(struct gifFile));
+struct gifContent *gifStructAllocate(void) {
+    return (struct gifContent *) calloc(1, sizeof(struct gifContent));
 }
 
 /******************************************************************************/
-void gifStructFree(struct gifFile *gf) {
+void gifStructFree(struct gifContent *gf) {
     free(gf->gct.palette);
-    if (gf->gceFile.extCode == GIF_PIC_EXT_CODE) {
+    if (gf->gce.extCode == GIF_PIC_EXT_CODE) {
         free(gf->datas.img.lct.palette);
         // TODO free to add for Raw + RGB datas
-    } else if (gf->gceFile.extCode == GIF_ANIM_EXT_CODE) {
-        for (int i = 0; i < gf->gceFile.gceSpecs.gceAnim.nFrames; i++) {
+    } else if (gf->gce.extCode == GIF_ANIM_EXT_CODE) {
+        for (int i = 0; i < gf->gce.gceSpecs.gceAnim.nFrames; i++) {
             free(gf->datas.frames[i].lct.palette);
             // TODO free to add for Raw + RGB datas
         }
@@ -54,8 +56,8 @@ void gifStructFree(struct gifFile *gf) {
 }
 
 /******************************************************************************/
-void gifReadHeader(FILE *fp, struct gifFile *gf) {
-    for (int i = 0; i < GIF_SIGNATURE_SIZE; ++i)
+void gifReadHeader(FILE *fp, struct gifContent *gf) {
+    for (int i = 0; i < GIF_HEADER_SIZE; ++i)
         gf->header[i] = fgetc(fp);
 }
 
@@ -78,14 +80,14 @@ void gifReadDims(FILE *fp, struct dimension *dim) {
 }
 
 /******************************************************************************/
-void gifReadLSD(FILE *fp, struct gifFile *gf) {
+void gifReadLSD(FILE *fp, struct gifContent *gf) {
     /* *** Logical Dimensions *** */
     gifReadDims(fp, &gf->lsd.logicDim);
 
     /* *** Global Color Table Descriptor *** */
     gf->lsd.gctInfos = (unsigned char) fgetc(fp);
-    gf->lsd.bitDepth = (gf->lsd.gctInfos & GIF_BITFIELD_PAL_BITS) + 1;
-    gf->lsd.hasGct   = (gf->lsd.gctInfos & GIF_BITFIELD_CT_PRESENCE) \
+    gf->lsd.bitDepth = (gf->lsd.gctInfos & CT_BITFIELD_PAL_BITS) + 1;
+    gf->lsd.hasGct   = (gf->lsd.gctInfos & CT_BITFIELD_CT_PRESENCE) \
                        >> CT_PRESENCE_BIT;
 
     /* *** Background Color Index *** */
@@ -112,67 +114,67 @@ struct rgb *gifReadCt(FILE *fp, struct colorTable *ct, unsigned char *bits) {
 }
 
 /******************************************************************************/
-void gifReadCommonGce(FILE *fp, struct gifFile *gf) {
+void gifReadCommonGce(FILE *fp, struct gifContent *gf) {
     unsigned char c;
 
     c = fgetc(fp);
-    if (c != GIF_GCE_START) {
+    if (c != GIF_GCE_START_BYTE) {
         printf("Couldn't identify Graphic Control introduction ('%c')\n", \
-                GIF_GCE_START);
+                GIF_GCE_START_BYTE);
         gifStructFree(gf);
         fclose(fp);
         exit(-1);
     }
 
-    gf->gceFile.extCode   = (gifExtCode) getc(fp);
-    gf->gceFile.nGceDatas = (int) getc(fp);
+    gf->gce.extCode   = (gifExtCode) getc(fp);
+    gf->gce.nGceDatas = (int) getc(fp);
 }
 
 /******************************************************************************/
-void gifReadSpecificGce(FILE *fp, struct gifFile *gf) {
+void gifReadSpecificGce(FILE *fp, struct gifContent *gf) {
     unsigned char c;
     int i;
 
-    if (gf->gceFile.extCode == GIF_PIC_EXT_CODE) {
-        for (i = 0; i < gf->gceFile.nGceDatas; i++) {
+    if (gf->gce.extCode == GIF_PIC_EXT_CODE) {
+        for (i = 0; i < gf->gce.nGceDatas; i++) {
             c = fgetc(fp);
             switch(i) {
                 case 0:
-                    gf->gceFile.gceSpecs.gcePic.hasTransparency = \
-                        ((int) c) & TRANSPARENCY_BIT;
+                    gf->gce.gceSpecs.gcePic.hasTransparency = \
+                        ((int) c) & CT_TRANSPARENCY_BIT;
                     break;
                 case 1: case 2: /* Frame delay not used for picture */
-                    gf->gceFile.gceSpecs.gcePic.frameDelay = (int)c;
+                    gf->gce.gceSpecs.gcePic.frameDelay = (int)c;
                     break;
                 case 3: /* Color number of transparent pixel in GCT */
-                    gf->gceFile.gceSpecs.gcePic.transpColNbr = (int)c;
+                    gf->gce.gceSpecs.gcePic.transpColNbr = (int)c;
                     break;
                 default:
                     break;
             }
         }
-    } else if (gf->gceFile.extCode == GIF_ANIM_EXT_CODE) {
+    } else if (gf->gce.extCode == GIF_ANIM_EXT_CODE) {
         //for (i = 0; i < GIF_APPLICATION_NAME_SIZE; i++)
-        for (i = 0; i < gf->gceFile.nGceDatas; i++)
-            gf->gceFile.gceSpecs.gceAnim.appliName[i] = fgetc(fp);
+        for (i = 0; i < gf->gce.nGceDatas; i++)
+            gf->gce.gceSpecs.gceAnim.appliName[i] = fgetc(fp);
 
         /* *** Nbr of Frames *** */
-        gf->gceFile.gceSpecs.gceAnim.nFrames = (int) fgetc(fp);
+        gf->gce.gceSpecs.gceAnim.nFrames = (int) fgetc(fp);
 
         /* *** Current Sub-block index *** */
-        gf->gceFile.gceSpecs.gceAnim.currentSubBlockIndex = (int) fgetc(fp);
+        gf->gce.gceSpecs.gceAnim.currentSubBlockIndex = (int) fgetc(fp);
 
         /* *** Nbr of Frames *** */
         for (i = 0; i < 2; i++) {
-            if (i) gf->gceFile.gceSpecs.gceAnim.nRepetitions += \
+            if (i) gf->gce.gceSpecs.gceAnim.nRepetitions += \
                        ((int) fgetc(fp)) * 256;
-            else   gf->gceFile.gceSpecs.gceAnim.nRepetitions += \
+            else   gf->gce.gceSpecs.gceAnim.nRepetitions += \
                        ((int) fgetc(fp));
         }
     }
 
     c = fgetc(fp);
-    if (c != GIF_SUBBLOCK_END) {
+    if (c != 0) {
         printf("Couldn't identify Sub-block end sequence\n");
         gifStructFree(gf);
         fclose(fp);
@@ -181,13 +183,13 @@ void gifReadSpecificGce(FILE *fp, struct gifFile *gf) {
 }
 
 /******************************************************************************/
-void gifReadGce(FILE *fp, struct gifFile *gf) {
+void gifReadGce(FILE *fp, struct gifContent *gf) {
     gifReadCommonGce(fp, gf);
     gifReadSpecificGce(fp, gf);
 }
 
 /******************************************************************************/
-void gifReadImgDescr(FILE *fp, struct gifFile *gf, struct frame *fr) {
+void gifReadImgDescr(FILE *fp, struct gifContent *gf, struct frame *fr) {
     unsigned char c;
 
     for (int i = 0; i < 7; ++i) {
@@ -222,14 +224,14 @@ void gifReadImgDescr(FILE *fp, struct gifFile *gf, struct frame *fr) {
                 c = fgetc(fp);
                 fr->descr.lctInfos = c;
                 fr->descr.bitDepth = \
-                    (fr->descr.lctInfos & GIF_BITFIELD_PAL_BITS) + 1;
+                    (fr->descr.lctInfos & CT_BITFIELD_PAL_BITS) + 1;
 
                 fr->descr.isInterlaced =                            \
-                    (fr->descr.lctInfos & GIF_BITFIELD_INTERLACED)  \
-                    >> INTERLACED_BIT;
+                    (fr->descr.lctInfos & CT_BITFIELD_INTERLACED)  \
+                    >> CT_INTERLACED_BIT;
 
                 fr->descr.hasLct =                                  \
-                    (fr->descr.lctInfos & GIF_BITFIELD_CT_PRESENCE) \
+                    (fr->descr.lctInfos & CT_BITFIELD_CT_PRESENCE) \
                     >> CT_PRESENCE_BIT;
 
                 if (fr->descr.hasLct)

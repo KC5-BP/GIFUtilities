@@ -2,6 +2,16 @@
 #ifndef __GIF_DEFINES_H__
 #define __GIF_DEFINES_H__
 
+#define EN_DBG 1
+
+/**********************************************
+ * GIF Extension code / tag
+ * to identify the file type
+ *********************************************/
+typedef enum {
+	GIF_PIC_EXT_CODE=0xF9, GIF_ANIM_EXT_CODE=0xFF
+} gifExtCode;
+
 #define N_DIM_BYTES			 2
 
 /* *** HEADER *** */
@@ -67,7 +77,6 @@
 #define GIF_IMG_DESCR_OFFSET_HEIGHT			 7
 #define GIF_IMG_DESCR_OFFSET_LCT			 9
 /* ******************************************* */
-
 
 #endif /* __GIF_DEFINES_H__ */
 

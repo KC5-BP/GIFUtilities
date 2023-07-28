@@ -30,7 +30,10 @@ CPYFLAGS =-O binary
 #SRC=$(wildcard *.c)
 SRC=$(wildcard *.c)
 SRC_FOLDER=../GIFUtilities
+
 SRC_STRUCT=$(SRC_FOLDER)/GIFStructure/GIFGetStructure.c $(SRC_FOLDER)/GIFStructure/GIFPrintStructure.c
+
+SRC_CONTENT=$(SRC_FOLDER)/GIFContent/GIFReadContent.c $(SRC_FOLDER)/GIFContent/GIFPrintContent.c
 
 ################
 # Object files #
@@ -44,16 +47,20 @@ SRC_STRUCT=$(SRC_FOLDER)/GIFStructure/GIFGetStructure.c $(SRC_FOLDER)/GIFStructu
 ##########
 
 EXE_STRUCT=structGetter.elf
+EXE_CONTENT=contentReader.elf
 
 #########################################################################
 
 .PHONY: clean
 
-all: $(EXE_STRUCT)
+all: $(EXE_STRUCT) $(EXE_CONTENT)
 
 $(EXE_STRUCT): main_GetStructure.c $(SRC_STRUCT)
 	$(CC) $(CFLAGS) -o $@ $^
 
+$(EXE_CONTENT): main_ReadContent.c $(SRC_CONTENT)
+	$(CC) $(CFLAGS) -o $@ $^
+
 clean:
-	rm -rf $(EXE_STRUCT)
+	rm -rf *.elf
 

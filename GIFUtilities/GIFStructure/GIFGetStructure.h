@@ -10,10 +10,6 @@
 #define GIF_IMG_DESCR_START_BYTE 		','
 #define GIF_EOF ';'
 
-typedef enum {
-	GIF_PIC_EXT_CODE=0xF9, GIF_ANIM_EXT_CODE=0xFF
-} gifExtCode;
-
 struct sectionInfos {
 	fpos_t pos;
 	uint8_t startByte;

@@ -31,20 +31,13 @@
 #define __GIFDECODER_H__
 
 #include <stdio.h>
+#include "../GIFDefines.h"
 
 /**********************************************
  * Type redefinition to ease modulation
  *********************************************/
 typedef int position_t;
 typedef unsigned char color_t;
-
-/**********************************************
- * GIF Extension code / tag
- * to identify the file type
- *********************************************/
-typedef enum {
-    GIF_PIC_EXT_CODE=0xF9, GIF_ANIM_EXT_CODE=0xFF
-} gifExtCode;
 
 /**********************************************
  * Dimension of a frame/picture
@@ -110,7 +103,7 @@ struct gcePicture {
  * Specifications of an Animation's GCE
  *********************************************/
 struct gceAnimation {
-    char appliName[GIF_APPLICATION_NAME_SIZE+1]; /* + '\0' */
+    char appliName[GIF_GCE_ANIM_APPLI_NAME_SIZE+1]; /* + '\0' */
     int nFrames; /* TODO To Be Verified */
     int currentSubBlockIndex;
     unsigned int nRepetitions;
@@ -188,27 +181,28 @@ union gifComposition {
  * - Data (Picture or Animation)
  *********************************************/
 struct gifContent {
-    char header[GIF_SIGNATURE_SIZE+1]; /* + '\0' */
+    char header[GIF_HEADER_SIZE+1]; /* + '\0' */
     struct logicalScreenDescriptor lsd;
     struct colorTable gct;
+	struct gce gce;
     union gifComposition datas;
 };
 
 /**********************************************
  *********************************************/
-struct gifFile *gifStructAllocate(void);
+struct gifContent *gifStructAllocate(void);
 
 /**********************************************
  *********************************************/
-void gifStructFree(struct gifFile *gf);
+void gifStructFree(struct gifContent *gf);
 
 /**********************************************
  *********************************************/
-void gifReadHeader(FILE *fp, struct gifFile *gf);
+void gifReadHeader(FILE *fp, struct gifContent *gf);
 
 /**********************************************
  *********************************************/
-void gifReadLSD(FILE *fp, struct gifFile *gf);
+void gifReadLSD(FILE *fp, struct gifContent *gf);
 
 /**********************************************
  *********************************************/
@@ -216,11 +210,11 @@ struct rgb *gifReadCt(FILE *fp, struct colorTable *ct, unsigned char *bitDepth);
 
 /**********************************************
  *********************************************/
-void gifReadGce(FILE *fp, struct gifFile *gf);
+void gifReadGce(FILE *fp, struct gifContent *gf);
 
 /**********************************************
  *********************************************/
-void gifReadImgDescr(FILE *fp, struct gifFile *gf, struct frame *fr);
+void gifReadImgDescr(FILE *fp, struct gifContent *gf, struct frame *fr);
 
 #endif /* __GIFDECODER_H__ */
 

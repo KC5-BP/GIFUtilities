@@ -2,8 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "gifDecoder.h"
-#include "gifInfoDisplayer.h"
+#include "../GIFUtilities/GIFContent/GIFReadContent.h"
+#include "../GIFUtilities/GIFContent/GIFPrintContent.h"
+#include "../GIFUtilities/GIFDefines.h"
+#include "../GIFUtilities/GIFStructure/GIFGetStructure.h"
 
 #if 1
 #define DBG(FMT, ...)               \
@@ -17,7 +19,7 @@
 int main(int argc, char **argv) {
     FILE *fp;
     char *fPath;
-    struct gifFile *gf;
+    struct gifContent *gf;
     unsigned char c;
     int i;
     int lzwCodeSize, nDatasSubBlock;
@@ -57,7 +59,7 @@ int main(int argc, char **argv) {
     gifReadGce(fp, gf);
     gifPrintGce(gf);
 
-    if (gf->gceFile.extCode == GIF_PIC_EXT_CODE) {        /* Simple GIF   */
+    if (gf->gce.extCode == GIF_PIC_EXT_CODE) {        /* Simple GIF   */
         printf("\n%s--- Image Descriptor ---%s\n", LIGHT_CYAN, NC);
         gifReadImgDescr(fp, gf, &gf->datas.img);
         gifPrintImgDescr(gf);
@@ -79,7 +81,7 @@ int main(int argc, char **argv) {
             nDatasSubBlock = fgetc(fp);
             printf("\n" FMT_BYTE "\n", (unsigned int)nDatasSubBlock, nDatasSubBlock);
         }
-    } else if (gf->gceFile.extCode == GIF_ANIM_EXT_CODE) { /* Animated GIF */
+    } else if (gf->gce.extCode == GIF_ANIM_EXT_CODE) { /* Animated GIF */
     } else {
         printf("Not managed for now ... Abort!\n");
         fclose(fp);

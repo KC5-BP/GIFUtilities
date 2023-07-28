@@ -31,7 +31,7 @@
 #define __GIFINFODISPLAYER_H__
 
 #include <stdio.h>
-#include "gifDecoder.h"
+#include "GIFReadContent.h"
 
 #define LIGHT_CYAN "\033[1;36m"
 #define ORANGE     "\033[0;33m"
@@ -46,27 +46,27 @@
 
 /**********************************************
  *********************************************/
-void gifPrintSignature(char *fmt, struct gifFile *gf);
+void gifPrintSignature(char *fmt, struct gifContent *gf);
 
 /**********************************************
  *********************************************/
-void gifPrintLogicalScreenDescriptor(struct gifFile *gf, int printGct);
+void gifPrintLogicalScreenDescriptor(struct gifContent *gf, int printGct);
 
 /**********************************************
  *********************************************/
-void gifPrintGce(struct gifFile *gf);
+void gifPrintGce(struct gifContent *gf);
 
 /**********************************************
  *********************************************/
-void gifPrintGcePicture(struct gifFile *gf);
+void gifPrintGcePicture(struct gifContent *gf);
 
 /**********************************************
  *********************************************/
-void gifPrintGceAnimation(struct gifFile *gf);
+void gifPrintGceAnimation(struct gifContent *gf);
 
 /**********************************************
  *********************************************/
-void gifPrintImgDescr(struct gifFile *gf);
+void gifPrintImgDescr(struct gifContent *gf);
 
 #endif /* __GIFINFODISPLAYER_H__ */
 

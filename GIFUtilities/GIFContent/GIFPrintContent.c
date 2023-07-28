@@ -27,12 +27,12 @@
 ===============================================================================>
 ============================================================================= */
 
-#include "gifInfoDisplayer.h"
+#include "GIFPrintContent.h"
 #include <stdio.h>
-#include "gifDecoder.h"
+#include "GIFReadContent.h"
 
 /******************************************************************************/
-void gifPrintSignature(char *fmt, struct gifFile *gf) {
+void gifPrintSignature(char *fmt, struct gifContent *gf) {
     printf(fmt, gf->header);
 }
 
@@ -46,7 +46,7 @@ void gifPrintCt(struct colorTable *ct) {
 }
 
 /******************************************************************************/
-void gifPrintLogicalScreenDescriptor(struct gifFile *gf, int printGct) {
+void gifPrintLogicalScreenDescriptor(struct gifContent *gf, int printGct) {
     printf("Logical dimension: %dx%d\n",    gf->lsd.logicDim.width, \
             gf->lsd.logicDim.height);
     printf("Global Color Table infos: %#02x\n", gf->lsd.gctInfos);
@@ -66,45 +66,45 @@ void gifPrintLogicalScreenDescriptor(struct gifFile *gf, int printGct) {
 }
 
 /******************************************************************************/
-void gifPrintGce(struct gifFile *gf) {
-    if (gf->gceFile.extCode == GIF_PIC_EXT_CODE) {
-        printf("Extension code: %#02x (%s)\n",  gf->gceFile.extCode, \
+void gifPrintGce(struct gifContent *gf) {
+    if (gf->gce.extCode == GIF_PIC_EXT_CODE) {
+        printf("Extension code: %#02x (%s)\n",  gf->gce.extCode, \
                                                 GIF_PIC_EXT_STRING);
-        printf("Amount of GCE Datas: %d\n", gf->gceFile.nGceDatas);
+        printf("Amount of GCE Datas: %d\n", gf->gce.nGceDatas);
         printf("Has transparency: %s", \
-                gf->gceFile.gceSpecs.gcePic.hasTransparency ? "YES" : "NO");
-        printf("Frame duration: %d[ms]\n", gf->gceFile.gceSpecs.gcePic.frameDelay);
+                gf->gce.gceSpecs.gcePic.hasTransparency ? "YES" : "NO");
+        printf("Frame duration: %d[ms]\n", gf->gce.gceSpecs.gcePic.frameDelay);
         printf("Trasparent Color Nbr: %#02x%s", \
-                    gf->gceFile.gceSpecs.gcePic.transpColNbr,
-                    gf->gceFile.gceSpecs.gcePic.transpColNbr ? "\n" : "(None)\n");
-    } else if (gf->gceFile.extCode == GIF_ANIM_EXT_CODE) {
-        printf("Extension code: %#02x (%s)\n",  gf->gceFile.extCode, \
+                    gf->gce.gceSpecs.gcePic.transpColNbr,
+                    gf->gce.gceSpecs.gcePic.transpColNbr ? "\n" : "(None)\n");
+    } else if (gf->gce.extCode == GIF_ANIM_EXT_CODE) {
+        printf("Extension code: %#02x (%s)\n",  gf->gce.extCode, \
                                                 GIF_ANIM_EXT_STRING);
-        printf("Amount of GCE Datas: %d\n", gf->gceFile.nGceDatas);
-        printf("Application Name: %s\n", gf->gceFile.gceSpecs.gceAnim.appliName);
-        printf("Animation with \"%d\" frames\n", gf->gceFile.gceSpecs.gceAnim.nFrames);
-        printf("Current Sub-block index: %d\n", gf->gceFile.gceSpecs.gceAnim.currentSubBlockIndex);
-        printf("Repetitions: %d\n", gf->gceFile.gceSpecs.gceAnim.nRepetitions);
+        printf("Amount of GCE Datas: %d\n", gf->gce.nGceDatas);
+        printf("Application Name: %s\n", gf->gce.gceSpecs.gceAnim.appliName);
+        printf("Animation with \"%d\" frames\n", gf->gce.gceSpecs.gceAnim.nFrames);
+        printf("Current Sub-block index: %d\n", gf->gce.gceSpecs.gceAnim.currentSubBlockIndex);
+        printf("Repetitions: %d\n", gf->gce.gceSpecs.gceAnim.nRepetitions);
     } else {
-        printf("Extension code: %#02x (%s)\n",  gf->gceFile.extCode, \
+        printf("Extension code: %#02x (%s)\n",  gf->gce.extCode, \
                                                 "Unknown extension code");
     }
 
 
-    if (gf->gceFile.extCode == GIF_PIC_EXT_CODE) {
-    } else if (gf->gceFile.extCode == GIF_ANIM_EXT_CODE) {
+    if (gf->gce.extCode == GIF_PIC_EXT_CODE) {
+    } else if (gf->gce.extCode == GIF_ANIM_EXT_CODE) {
     } else {
     }
 }
 
 /******************************************************************************/
-void gifPrintGcePicture(struct gifFile *gf);
+void gifPrintGcePicture(struct gifContent *gf);
 
 /******************************************************************************/
-void gifPrintGceAnimation(struct gifFile *gf);
+void gifPrintGceAnimation(struct gifContent *gf);
 
 /******************************************************************************/
-void gifPrintImgDescr(struct gifFile *gf) {
+void gifPrintImgDescr(struct gifContent *gf) {
     printf("Position from North-West corner: (%d, %d)\n", gf->datas.img.descr.pos.x, gf->datas.img.descr.pos.y);
     printf("Dimension: %dx%d\n", gf->datas.img.descr.dim.width, gf->datas.img.descr.dim.height);
 

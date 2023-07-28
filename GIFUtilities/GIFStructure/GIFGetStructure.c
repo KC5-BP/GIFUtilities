@@ -11,7 +11,8 @@
 #include <errno.h>
 #include <string.h>
 
-#if 1
+/* EN_DBG in ../GIFDefines.h */
+#ifdef EN_DBG
 #define DBG(FMT, ...)	\
 do {							\
 	printf(FMT, ##__VA_ARGS__);	\
