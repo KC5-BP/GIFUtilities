@@ -54,7 +54,7 @@ void GIFPrintLct(struct gifStructure *gs) {
 void GIFPrintData(struct gifStructure *gs) {
 	if (gs->extCode == GIF_PIC_EXT_CODE) {
 		printf("*** SIMPLE IMAGE (Single frame) ***\n");
-		GIFPrintFrameInfos(&gs->dataComposition.imgFrame);
+		GIFPrintFrameInfos(&gs->dataComposition.img);
 	} else if (gs->extCode == GIF_ANIM_EXT_CODE) {
 		printf("*** ANIMATED GIF ***\n");
 	}
