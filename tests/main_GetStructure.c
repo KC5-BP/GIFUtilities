@@ -55,17 +55,17 @@ int main(int argc, char **argv) {
 		printf("-- Img Datas\n");
 		printf("'-> LZW Minimum Code\n");
 		printf("   '-> Starting byte: %#02x(%c)\n", 						 \
-				ARF(gs.dataComposition.imgFrame.imgDatas.lzwMinCode.startByte));
+				ARF(gs.dataComposition.img.dataSec.lzwMinCode.startByte));
 		printf("   '-> Datas splitted in: %d sub-blocks\n", 				 \
-				gs.dataComposition.imgFrame.imgDatas.lzwMinCode.subBlockSize);
+				gs.dataComposition.img.dataSec.lzwMinCode.subBlockSize);
 		printf("'-> Raw datas\n");
 		for (int i = 0; 													   \
-			 i < gs.dataComposition.imgFrame.imgDatas.lzwMinCode.subBlockSize; \
+			 i < gs.dataComposition.img.dataSec.lzwMinCode.subBlockSize; \
 			 ++i) {
 			printf("   '-> [%02d] Starting byte: %#02x(%c)\n", i,			   \
-			ARF(gs.dataComposition.imgFrame.imgDatas.rawDatas[i].startByte));
+			ARF(gs.dataComposition.img.dataSec.rawDatas[i].startByte));
 			printf("   '-> [%02d] Size: %d\n", i,			   				   \
-			gs.dataComposition.imgFrame.imgDatas.rawDatas[i].subBlockSize);
+			gs.dataComposition.img.dataSec.rawDatas[i].subBlockSize);
 		}
 
 		printf("-- Trailer\n");
@@ -74,8 +74,8 @@ int main(int argc, char **argv) {
 	} else if (gs.extCode == GIF_ANIM_EXT_CODE) {
 		printf("--- Animated GIF ---\n");
 		printf("GCE\n'-> Starting byte: %#02x(%c)\n", 		\
-				gs.dataComposition.imgFrame.gce.startByte,	\
-				gs.dataComposition.imgFrame.gce.startByte);
+				gs.dataComposition.img.gce.startByte,	\
+				gs.dataComposition.img.gce.startByte);
 	}
 
 	gifFreeStructure(&gs);
