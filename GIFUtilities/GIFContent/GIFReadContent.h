@@ -5,7 +5,7 @@
 |x| .  ,__  -'""`;
 |x|  \/   \  /"'  \
 |x|     __// \-"-_/
-|x| "`´"   \  |         > Module: gifDecoder
+|x| "`´"   \  |         > Module: GIF Read Content
 |x|  /\     |  \  _.-"',
 |x| ^""^,-´\/\  '" ,--. \
 |x| /  \|\| | | , /    | |
@@ -14,8 +14,8 @@
 |x|             |/.-"_/     > By: KC5-BP
 |x| _..__---+-_/'|--"
 |x|           _| |_--,      > Description:
-|x|          ',/ |   /          ° Function protos to fully extract content
-|x|          /|| |  /           ° of GIF Picture or Animation.
+|x|          ',/ |   /          ° Function protos to fully read content
+|x|          /|| |  /           ° of a GIF Picture or an Animation.
 |x|       |\| |/ |- |
 |x| -..-,-/ | /  '/-"
 |x| /--\|/-/\/ ^,'|
@@ -31,26 +31,6 @@
 #define __GIFDECODER_H__
 
 #include <stdio.h>
-
-#define GIF_SIGNATURE_SIZE           6
-#define GIF_APPLICATION_NAME_SIZE   11
-#define N_DIM_BYTES                  2
-
-#define TRANSPARENCY_BIT    0
-#define GIF_BITFIELD_TRANSPARENCY   0x01
-
-#define GIF_BITFIELD_PAL_BITS       0x07
-
-#define INTERLACED_BIT      6
-#define GIF_BITFIELD_INTERLACED     0x40
-
-#define CT_PRESENCE_BIT     7
-#define GIF_BITFIELD_CT_PRESENCE    0x80
-
-#define GIF_GCE_START       '!'
-#define GIF_FRAME_START     ','
-#define GIF_SUBBLOCK_END      0
-#define GIF_EOF             ';'
 
 /**********************************************
  * Type redefinition to ease modulation
@@ -173,8 +153,6 @@ struct imgDatas {
     int minLzwCodeSize;
     int rawDataSize;
     unsigned char *rawDatas;
-    struct rgb *transformedDatas; /* [f][l][c]: Frame | Line | Column
-                                   * Size from struct imgDescriptor   */
 };
 
 /**********************************************
@@ -183,7 +161,7 @@ struct imgDatas {
  *      & an image (see structure above)
  *********************************************/
 struct frame {
-    struct gce gceFrame;
+    struct gce gce;
     //struct img img; /* Simplifies writing => img.img.descr. */
     struct imgDescriptor descr;
     struct colorTable lct;
@@ -209,11 +187,10 @@ union gifComposition {
  * - Graphical Control Extension
  * - Data (Picture or Animation)
  *********************************************/
-struct gifFile {
+struct gifContent {
     char header[GIF_SIGNATURE_SIZE+1]; /* + '\0' */
     struct logicalScreenDescriptor lsd;
     struct colorTable gct;
-    struct gce gceFile;
     union gifComposition datas;
 };
 

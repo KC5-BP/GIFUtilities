@@ -5,20 +5,9 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-/* HEADER */
 #define GIF_HEADER_START_BYTE 			'G'
-
-/* LOGICAL SCREEN DESCRIPTOR (LSD) */
-
-/* GRAPHICAL CONTROL EXTENSION (GCE) */
 #define GIF_GCE_START_BYTE 				'!'
-
-/* IMAGE DESCRIPTOR */
 #define GIF_IMG_DESCR_START_BYTE 		','
-
-/* IMAGE DATAS */
-
-/* TRAILER */
 #define GIF_EOF ';'
 
 typedef enum {
