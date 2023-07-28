@@ -1,0 +1,36 @@
+LZW # Datas
+0x2 0x03 
+
+0x8c 0x6 0x5
+
+Hexa: MSB  <--------  LSB
+      0x05    0x06    0x8c
+
+Bin : MSB  <--------  LSB
+      0000 0101  0000 0110  1000 1100
+
+LZW Min code: 2bits, so start dictionnary with 2+1=3bits
+
+Code | Color in Color Table (-R-  -G-  -B- )
+ 000 | Black                (0x00 0x00 0x00)
+ 001 | Red					(0xff 0x00 0x00)
+ 010 | Green				(0x00 0xff 0x00)
+ 011 | Blue 				(0x00 0x00 0xff)
+---------------------------------------------
+ 100 | Clear dict.
+ 101 | End
+
+Splitting data by group of 3bits
+      000 001 010 000 011 010 001 100
+        Last
+Code	Code       	Side note
+100 				Clear dictionnary
+001					[Red]
+010                 [Red Green]
+011					[Red Green Blue]
+000					[Red Green Blue Black]
+010					[Red Green Blue Black Green]
+001					[Red Green Blue Black Green Red]
+000					[Red Green Blue Black Green Red Black]
+
+
