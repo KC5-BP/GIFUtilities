@@ -10,11 +10,11 @@
 
 /* *** LOGICAL SCREEN DESCRIPTOR (LSD) *** */
 #define GIF_LSD_SIZE		 7
-#define GIF_LSD_WIDTH_OFFSET 		 	 0
-#define GIF_LSD_HEIGHT_OFFSET 		 	 2
-#define GIF_LSD_GCT_INFOS_OFFSET	 	 4
-#define GIF_LSD_BACKGROUND_OFFSET	 	 5
-#define GIF_LSD_TRANSPARENT_OFFSET	 	 6
+#define GIF_LSD_OFFSET_WIDTH 		 	 0
+#define GIF_LSD_OFFSET_HEIGHT 		 	 2
+#define GIF_LSD_OFFSET_GCT_INFOS	 	 4
+#define GIF_LSD_OFFSET_BACKGROUND	 	 5
+#define GIF_LSD_OFFSET_TRANSPARENT	 	 6
 /* *************************************** */
 
 /* *** GLOBAL COLOR TABLE (GCT) *** */
@@ -23,7 +23,7 @@
 #define CT_TRANSPARENCY_BIT	 0
 #define CT_BITFIELD_TRANSPARENCY	(1 << CT_TRANSPARENCY_BIT)
 
-#define GIF_BITFIELD_PAL_BITS       0x07
+#define CT_BITFIELD_PAL_BITS       0x07
 
 #define CT_INTERLACED_BIT	 6
 #define CT_BITFIELD_INTERLACED		(1 << CT_INTERLACED_BIT)
@@ -58,6 +58,14 @@
 #define GIF_GCE_PIC_OFFSET_END_SYMBOLE		 7
 
 /* **            IMAGE DESCRIPTION          ** */
+#define GIF_IMG_DESCR_SIZE	10
+
+#define GIF_IMG_DESCR_OFFSET_START_SYMBOLE	 0
+#define GIF_IMG_DESCR_OFFSET_NORTH_POS		 1
+#define GIF_IMG_DESCR_OFFSET_WEST_POS		 3
+#define GIF_IMG_DESCR_OFFSET_WIDTH			 5
+#define GIF_IMG_DESCR_OFFSET_HEIGHT			 7
+#define GIF_IMG_DESCR_OFFSET_LCT			 9
 /* ******************************************* */
 
 
