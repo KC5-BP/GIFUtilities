@@ -1,0 +1,8 @@
+
+DC/DC:
+- Main Power Supply
+	- 
+- LEDs Power Supply
+	- In: 4V5 -> 14V0 | Out: 0V519 -> 5V5 / 6A (30W)
+	  https://www.digikey.ch/en/products/detail/murata-power-solutions-inc/OKL-T-6-W12P-C/4878852
+	
