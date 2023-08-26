@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "../GIFUtilities/GIFContent/GIFReadContent.h"
-#include "../GIFUtilities/GIFContent/GIFPrintContent.h"
-#include "../GIFUtilities/GIFDefines.h"
-#include "../GIFUtilities/GIFStructure/GIFGetStructure.h"
+#include "../modules/gifcsts.h"
+#include "../modules/gifContent/GIFReadContent.h"
+#include "../modules/gifContent/GIFPrintContent.h"
+#include "../modules/gifStructure/GIFGetStructure.h"
 
 #if 1
 #define DBG(FMT, ...)               \

@@ -3,9 +3,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <inttypes.h>
-//#include "../GIFUtilities/GIFUtilities.h"
-#include "../GIFUtilities/GIFStructure/GIFGetStructure.h"
-#include "../GIFUtilities/GIFStructure/GIFPrintStructure.h"
+#include "../modules/gifStructure/GIFGetStructure.h"
+#include "../modules/gifStructure/GIFPrintStructure.h"
 
 #define ARF(VAR) (unsigned char)VAR, (unsigned char)VAR
 

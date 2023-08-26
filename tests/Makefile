@@ -29,11 +29,13 @@ CPYFLAGS =-O binary
 # Detail: Does not respect alphabetic order by default
 #SRC=$(wildcard *.c)
 SRC=$(wildcard *.c)
-SRC_FOLDER=../GIFUtilities
+MODULES_DIR=../modules
 
-SRC_STRUCT=$(SRC_FOLDER)/GIFStructure/GIFGetStructure.c $(SRC_FOLDER)/GIFStructure/GIFPrintStructure.c
+STRUCT_SRC_DIR=$(MODULES_DIR)/gifStructure
+STRUCT_SRC=$(STRUCT_SRC_DIR)/GIFGetStructure.c $(STRUCT_SRC_DIR)/GIFPrintStructure.c
 
-SRC_CONTENT=$(SRC_FOLDER)/GIFContent/GIFReadContent.c $(SRC_FOLDER)/GIFContent/GIFPrintContent.c
+CONTENT_SRC_DIR=$(MODULES_DIR)/gifContent
+CONTENT_SRC=$(CONTENT_SRC_DIR)/GIFReadContent.c $(CONTENT_SRC_DIR)/GIFPrintContent.c
 
 ################
 # Object files #
@@ -55,10 +57,10 @@ EXE_CONTENT=contentReader.elf
 
 all: $(EXE_STRUCT) $(EXE_CONTENT)
 
-$(EXE_STRUCT): main_GetStructure.c $(SRC_STRUCT)
+$(EXE_STRUCT): main_GetStructure.c $(STRUCT_SRC)
 	$(CC) $(CFLAGS) -o $@ $^
 
-$(EXE_CONTENT): main_ReadContent.c $(SRC_CONTENT)
+$(EXE_CONTENT): main_ReadContent.c $(CONTENT_SRC)
 	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
