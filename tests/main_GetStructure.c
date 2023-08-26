@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
 		return rc;
 	}
 
-	if (gs.extCode == GIF_PIC_EXT_CODE) {
+	if (gs.ec == GIF_PIC_EXT_CODE) {
 		printf("--- Simple Frame ---\n");
 		GIFPrintHeader(&gs);
 		printf("\n");
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
 		printf("-- Img Datas\n");
 		printf("'-> LZW Minimum Code\n");
 		printf("   '-> Starting byte: %#02x(%c)\n", 						 \
-				ARF(gs.dataComposition.img.dataSec.lzwMinCode.startByte));
+				ARF(gs.dataComposition.img.dataSec.lzwMinCode.firstByte));
 		printf("   '-> Datas splitted in: %d sub-blocks\n", 				 \
 				gs.dataComposition.img.dataSec.lzwMinCode.subBlockSize);
 		printf("'-> Raw datas\n");
@@ -62,19 +62,19 @@ int main(int argc, char **argv) {
 			 i < gs.dataComposition.img.dataSec.lzwMinCode.subBlockSize; \
 			 ++i) {
 			printf("   '-> [%02d] Starting byte: %#02x(%c)\n", i,			   \
-			ARF(gs.dataComposition.img.dataSec.rawDatas[i].startByte));
+			ARF(gs.dataComposition.img.dataSec.rawDatas[i].firstByte));
 			printf("   '-> [%02d] Size: %d\n", i,			   				   \
 			gs.dataComposition.img.dataSec.rawDatas[i].subBlockSize);
 		}
 
 		printf("-- Trailer\n");
-		printf("'-> Start byte: %#02x(%c)\n", ARF(gs.trailer.startByte));
+		printf("'-> Start byte: %#02x(%c)\n", ARF(gs.trailer.firstByte));
 		printf("'-> Size: %d\n", gs.trailer.subBlockSize);
-	} else if (gs.extCode == GIF_ANIM_EXT_CODE) {
+	} else if (gs.ec == GIF_ANIM_EXT_CODE) {
 		printf("--- Animated GIF ---\n");
 		printf("GCE\n'-> Starting byte: %#02x(%c)\n", 		\
-				gs.dataComposition.img.gce.startByte,	\
-				gs.dataComposition.img.gce.startByte);
+				gs.dataComposition.img.gce.firstByte,	\
+				gs.dataComposition.img.gce.firstByte);
 	}
 
 	gifFreeStructure(&gs);
