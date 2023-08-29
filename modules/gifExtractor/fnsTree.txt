@@ -1,0 +1,13 @@
+From GIF File
+├ Header
+├ Logical Screen Descriptor
+├ Global Color Table (optional)
+├─────Identify "first" Extension Code
+│ PICTURE                        │ ANIMATION
+├ Frame                          ├ GCE
+├─ GCE                           ├ N Frames
+├─ Img Descr.                    ├─ Frame
+├── Local Color Table (optional) ├── ...
+├─ Img Datas                     ├─ Frame
+└ Trailer                        ├── ...
+                                 └ Trailer
