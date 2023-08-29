@@ -50,17 +50,21 @@ CONTENT_SRC=$(CONTENT_SRC_DIR)/GIFReadContent.c $(CONTENT_SRC_DIR)/GIFPrintConte
 
 EXE_STRUCT=structGetter.elf
 EXE_CONTENT=contentReader.elf
+EXE_FULL=fullInOne.elf
 
 #########################################################################
 
 .PHONY: clean
 
-all: $(EXE_STRUCT) $(EXE_CONTENT)
+all: $(EXE_STRUCT) $(EXE_CONTENT) $(EXE_FULL)
 
 $(EXE_STRUCT): main_GetStructure.c $(STRUCT_SRC)
 	$(CC) $(CFLAGS) -o $@ $^
 
 $(EXE_CONTENT): main_ReadContent.c $(CONTENT_SRC)
+	$(CC) $(CFLAGS) -o $@ $^
+
+$(EXE_FULL): main_FullRaw.c
 	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
