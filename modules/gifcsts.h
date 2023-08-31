@@ -31,9 +31,9 @@
 #define __GIF_CSTS_H__
 
 /* *** GLOBAL ******************************* */
-#define GIF_HEADER_START_BYTE       'G'
-#define GIF_GCE_START_BYTE          '!'
-#define GIF_IMG_DESCR_START_BYTE    ','
+#define GIF_HEADER_SENTINEL         'G'
+#define GIF_GCE_SENTINEL            '!'
+#define GIF_IMG_DESCR_SENTINEL      ','
 #define GIF_END_OF_SECTION           0
 #define GIF_EOF                     ';'
 

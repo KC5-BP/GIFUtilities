@@ -50,7 +50,7 @@ int readHeader(FILE *fp, char **version) {
     rc = ( ptrRc ) ? rc : -1;
 
     /* Error: Does the Header starts correctly? */
-    rc = (*version[0] == GIF_HEADER_START_BYTE) ? rc : -1;
+    rc = (*version[0] == GIF_HEADER_SENTINEL) ? rc : -1;
 
     RESTORE_CURRENT_FILE_POS(fp);
 
@@ -157,7 +157,7 @@ int readDatas(FILE *fp, unsigned char gctOffset, union gifComposition *datas) {
                                                strerror(errno), NC);
 
     byte = fgetc(fp);
-    if (byte != GIF_GCE_START_BYTE) {
+    if (byte != GIF_GCE_SENTINEL) {
         RESTORE_CURRENT_FILE_POS(fp);
         return rc ? rc : -1;
     }
