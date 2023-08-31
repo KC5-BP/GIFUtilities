@@ -145,7 +145,7 @@ int readGct(FILE *fp, char ctInfos, unsigned char bitDepth, \
 }
 
 /* *** *** */
-int readDatas(FILE *fp, unsigned char gctOffset, union gifComposition *datas) {
+int readDatas(FILE *fp, long gctOffset, union gifComposition *datas) {
     int rc;
     unsigned char byte;
 
@@ -239,7 +239,7 @@ int main(int argc, char **argv) {
         return -1;
     }
     if (gct.nCol) {
-        printf("GIF file does have a Global Color Table\n");
+        printf("File does have a Global Color Table\n");
         printf("# of colors (2^%d): %d\n", lsd.bitDepth, gct.nCol);
         printf(" i ) -R- -G- -B-\n");
         for (i = 0; i < gct.nCol; ++i) {
@@ -248,7 +248,7 @@ int main(int argc, char **argv) {
                     gct.palette[i].b);
         }
     } else {
-        printf("GIF file does %sNOT%s have a Global Color Table\n", RED_BOLD, NC);
+        printf("File does %sNOT%s have a Global Color Table\n", RED_BOLD, NC);
     }
 
     /* *** *** */
