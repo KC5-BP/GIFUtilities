@@ -42,7 +42,7 @@ int readHeader(FILE *fp, char **version) {
     /* Restart at file's beginning */
     rc = fseek(fp, 0, SEEK_SET);
     if (rc) DBG("%s%s: fseek failed (%s)%s\n", RED, __func__, \
-            strerror(errno), NC);
+                                              strerror(errno), NC);
 
     /* Read at most count - 1 */
     ptrRc = fgets(*version, GIF_HEADER_SIZE + 1, fp);
@@ -85,7 +85,7 @@ int readLsd(FILE *fp, struct logicalScreenDescriptor *lsd) {
     /* Restart file after header section */
     rc = fseek(fp, GIF_HEADER_SIZE, SEEK_SET);
     if (rc) DBG("%s%s: fseek failed (%s)%s\n", RED, __func__, \
-            strerror(errno), NC);
+                                               strerror(errno), NC);
 
     gifReadDims(fp, &lsd->logicDim);
 
@@ -130,7 +130,7 @@ int readGct(FILE *fp, char ctInfos, unsigned char bitDepth, \
         /* Restart file after header section */
         rc = fseek(fp, GIF_HEADER_SIZE + GIF_LSD_SIZE, SEEK_SET);
         if (rc) DBG("%s%s: fseek failed (%s)%s\n", RED, __func__, \
-                strerror(errno), NC);
+                                                   strerror(errno), NC);
 
         rc = (allocateAndReadCt(fp, bitDepth, ct) < 0) ? -1 : rc;
 
@@ -154,23 +154,21 @@ int readDatas(FILE *fp, unsigned char gctOffset, union gifComposition *datas) {
     /* Restart file after header section */
     rc = fseek(fp, GIF_HEADER_SIZE + GIF_LSD_SIZE + gctOffset, SEEK_SET);
     if (rc) DBG("%s%s: fseek failed (%s)%s\n", RED, __func__, \
-            strerror(errno), NC);
+                                               strerror(errno), NC);
 
     byte = fgetc(fp);
     if (byte != GIF_GCE_START_BYTE) {
-        rc = rc ? rc : -1;
+        RESTORE_CURRENT_FILE_POS(fp);
+        return rc ? rc : -1;
+    }
+
+    byte = fgetc(fp);
+    if (byte == GIF_PIC_EXT_CODE) {
+        datas->img.gce.extCode = byte;
+    } else if (byte == GIF_ANIM_EXT_CODE) {
+        datas->anim.gce.extCode = byte;
     } else {
-        byte = fgetc(fp);
-
-        datas->img.gce.extCode = byte; /* TODO: Split Pic & Anim ext code */
-
-        if (byte == GIF_PIC_EXT_CODE) {
-            datas->img.gce.extCode = byte;
-        } else if (byte == GIF_ANIM_EXT_CODE) {
-            //datas->anim.gce.extCode = byte;
-        } else {
-            rc = rc ? rc : -1;
-        }
+        rc = rc ? rc : -1;
     }
 
     RESTORE_CURRENT_FILE_POS(fp);
@@ -180,8 +178,7 @@ int readDatas(FILE *fp, unsigned char gctOffset, union gifComposition *datas) {
 
 /* *** *** */
 int main(int argc, char **argv) {
-    printf("EOF: %d (%#x)\n", EOF, EOF);
-    printf("6 / 2 * (1 + 2) = %d\n", 6 / 2 * (1+2));
+    //printf("EOF: %d (%#x)\n", EOF, EOF);
     if (argc < 2) {
         printf("No file has been selected... Abort!\n");
         return -1;
@@ -234,7 +231,14 @@ int main(int argc, char **argv) {
 
     /* *** *** */
     rc = readGct(fp, lsd.gctInfos, lsd.bitDepth, &gct);
-    if (!rc) {
+    if (rc) {
+        printf("Error during GLOBAL COLOR TABLE reading\n");
+        fclose(fp);
+        free(version);
+        free(gct.palette);
+        return -1;
+    }
+    if (gct.nCol) {
         printf("GIF file does have a Global Color Table\n");
         printf("# of colors (2^%d): %d\n", lsd.bitDepth, gct.nCol);
         printf(" i ) -R- -G- -B-\n");
@@ -245,17 +249,25 @@ int main(int argc, char **argv) {
         }
     } else {
         printf("GIF file does %sNOT%s have a Global Color Table\n", RED_BOLD, NC);
-        printf("Check on # of colors: (expected) 0 =%c= %d (read)\n", \
-                (gct.nCol) ? '\0' : '/', gct.nCol);
     }
 
     /* *** *** */
     rc = readDatas(fp, gct.nCol * sizeof(struct rgb), &datas);
-    printf("File type: %s (Code: %#x)\n", (datas.img.gce.extCode == 0xF9) ?   \
-                                            ("Picture") :                     \
-                                            (datas.img.gce.extCode == 0xFF) ? \
-                                                ("Animation") : ("Unknown"),  \
-                                          datas.img.gce.extCode);
+    if (rc) {
+        printf("Error during DATAS reading\n");
+        fclose(fp);
+        free(version);
+        free(gct.palette);
+        return -1;
+    }
+    printf("File type: ");
+    if (datas.img.gce.extCode == GIF_PIC_EXT_CODE) {
+        printf("Picture (Code: %#x)\n", datas.img.gce.extCode);
+    } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
+        printf("Animation (Code: %#x)\n", datas.anim.gce.extCode);
+    } else {
+        printf("Unknown\n");
+    }
 
     /* *** *** */
     fclose(fp);
