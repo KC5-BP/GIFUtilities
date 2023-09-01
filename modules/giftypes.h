@@ -214,7 +214,6 @@ struct imgDescriptor {
  *
  **********************************************/
 struct imgDatas {
-    int minLzwCodeSize;
     int rawDataSize;
     unsigned char *rawDatas;
 };
@@ -229,6 +228,7 @@ struct frame {
     //struct img img; /* Simplifies writing => img.img.descr. */
     struct imgDescriptor descr;
     struct colorTable lct;
+    int minLzwCodeSize;
     struct imgDatas *datas;
 };
 
