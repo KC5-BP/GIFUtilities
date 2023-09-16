@@ -11,6 +11,7 @@
 #define LIGHT_CYAN "\033[1;36m"
 #define ORANGE     "\033[0;33m"
 #define GREEN      "\033[0;32m"
+#define GREEN_BOLD "\033[1;32m"
 #define RED        "\033[0;31m"
 #define RED_BOLD   "\033[1;31m"
 #define NC         "\033[0m"
@@ -239,7 +240,7 @@ int main(int argc, char **argv) {
         return -1;
     }
     if (gct.nCol) {
-        printf("File does have a Global Color Table\n");
+        printf("File %sdoes have%s a Global Color Table\n", GREEN_BOLD, NC);
         printf("# of colors (2^%d): %d\n", lsd.bitDepth, gct.nCol);
         printf(" i ) -R- -G- -B-\n");
         for (i = 0; i < gct.nCol; ++i) {
@@ -248,7 +249,7 @@ int main(int argc, char **argv) {
                     gct.palette[i].b);
         }
     } else {
-        printf("File does %sNOT%s have a Global Color Table\n", RED_BOLD, NC);
+        printf("File %sdoes NOT have%s a Global Color Table\n", RED_BOLD, NC);
     }
 
     /* *** *** */
