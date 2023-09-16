@@ -145,6 +145,32 @@ int readGct(FILE *fp, char ctInfos, unsigned char bitDepth, \
 }
 
 /* *** *** */
+int readFrame(..., char firstGce) {
+    /* GCE */
+    if ( ! firstGce ) {
+        datas->img.gce.nGceDatas = fgetc(fp);
+    } /* Otherwise, skip SENTINEL + EXTENSION CODE */
+
+    // readImgDescr(...);
+
+    // readImgDatas(...);
+
+    // test Trailer
+}
+
+/* *** *** */
+int readAnimation(...) {
+    /* GCE */
+
+    // Count frames
+
+    // for each ( frames )
+    //      readFrame(..., false);
+
+    // test Trailer
+}
+
+/* *** *** */
 int readDatas(FILE *fp, long gctOffset, union gifComposition *datas) {
     int rc;
     unsigned char byte;
@@ -165,8 +191,25 @@ int readDatas(FILE *fp, long gctOffset, union gifComposition *datas) {
     byte = fgetc(fp);
     if (byte == GIF_PIC_EXT_CODE) {
         datas->img.gce.extCode = byte;
+
+        // readFrame(..., firstGce = true);
+        // => firstGce = true, skip SENTINEL + extCode
+
+        /* TODO Move followings inside readFrame() */
+
+        /* Dedicated part */
+        datas->img.gce.gceSpecs.gcePic.hasTransparency = fgetc(fp);
     } else if (byte == GIF_ANIM_EXT_CODE) {
         datas->anim.gce.extCode = byte;
+
+        // readAnimation(...);
+        // Not much interest for firstGce in animation, 
+        // because you can't have "recursive" animation in a file
+
+        /* TODO Move followings inside readAnimation() */
+        datas->anim.gce.nGceDatas = fgetc(fp);
+
+        /* Dedicated part */
     } else {
         rc = rc ? rc : -1;
     }
@@ -263,8 +306,10 @@ int main(int argc, char **argv) {
     printf("File type: ");
     if (datas.img.gce.extCode == GIF_PIC_EXT_CODE) {
         printf("Picture (Code: %#x)\n", datas.img.gce.extCode);
+        printf("# of datas in sub-block: %d\n", datas.img.gce.nGceDatas);
     } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
         printf("Animation (Code: %#x)\n", datas.anim.gce.extCode);
+        printf("# of datas in sub-block: %d\n", datas.anim.gce.nGceDatas);
     } else {
         printf("Unknown\n");
     }
