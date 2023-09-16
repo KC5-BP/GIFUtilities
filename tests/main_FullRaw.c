@@ -113,9 +113,8 @@ int allocateAndReadCt(FILE *fp, unsigned char bitDepth, struct colorTable *ct) {
     if ( ! ct->palette )    return -1;
 
     for (int i = 0; i < ct->nCol; ++i) {
-        ct->palette[i].r = (unsigned char) getc(fp);
-        ct->palette[i].g = (unsigned char) getc(fp);
-        ct->palette[i].b = (unsigned char) getc(fp);
+        /* Using fgets without testing return gives a smaller executable */
+        /*ptrRc = */fgets((char *) (ct->palette+i), sizeof(struct rgb) + 1, fp);
     }
 
     return 0;
