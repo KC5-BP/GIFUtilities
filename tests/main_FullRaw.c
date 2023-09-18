@@ -358,21 +358,22 @@ int main(int argc, char **argv) {
     printf("File type: ");
     if (datas.img.gce.extCode == GIF_PIC_EXT_CODE) {
         printf("Picture (Code: %#x)\n", datas.img.gce.extCode);
-        printf("# of datas in sub-block: %d\n", datas.img.gce.nGceDatas);
-        printf("Transparent field: %#x\n",  \
+        printf("\t# of datas in sub-block: %d\n", datas.img.gce.nGceDatas);
+        printf("\tTransparent field: %#x\n",  \
                                 datas.img.gce.gceSpecs.gcePic.hasTransparency);
-        printf("Frame delay: %d[ms] (Useless for this file)\n", \
+        printf("\tFrame delay: %d[ms] (Useless for this file)\n", \
                                 datas.img.gce.gceSpecs.gcePic.frameDelay);
-        printf("Transparent index in Color Table: %d\n\n",      \
+        printf("\tTransparent index in Color Table: %d\n\n",      \
                                 datas.img.gce.gceSpecs.gcePic.transpColNbr);
 
-        printf("Position from North/West: (%d, %d)\n", datas.img.descr.pos.x, \
-                                                       datas.img.descr.pos.y);
-        printf("Dimension: %dx%d\n", datas.img.descr.dim.width, \
-                                     datas.img.descr.dim.height);
+        printf("\tPosition from North/West: (%d, %d)\n",                    \
+                                                    datas.img.descr.pos.x,  \
+                                                    datas.img.descr.pos.y);
+        printf("\tDimension: %dx%d\n", datas.img.descr.dim.width, \
+                                       datas.img.descr.dim.height);
     } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
         printf("Animation (Code: %#x)\n", datas.anim.gce.extCode);
-        printf("# of datas in sub-block: %d\n", datas.anim.gce.nGceDatas);
+        printf("\t# of datas in sub-block: %d\n", datas.anim.gce.nGceDatas);
     } else {
         printf("Unknown\n");
     }
