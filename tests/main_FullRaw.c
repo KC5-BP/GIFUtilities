@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <string.h>
 #include <math.h>
+#include "limits.h"
 #include "../modules/gifcsts.h"
 #include "../modules/giftypes.h"
 
@@ -189,38 +190,36 @@ int countImgDatasSize(FILE *fp) {
 
     do {
         byte = fgetc(fp);
-        printf("%s: byte=%#x(%d)\n", __func__, byte, byte);
         size += byte;
 
         rc = fseek(fp, byte, SEEK_CUR);
         if (rc) DBG("%s%s: fseek failed (%s)%s\n", RED, __func__, \
                                                    strerror(errno), NC);
-    } while (byte != 0);
+    } while (byte != GIF_END_OF_SECTION);
 
-    byte = fgetc(fp);
-    printf("Trailer? %s\n", (byte == GIF_EOF) ? "YES" : "NO");
     RESTORE_CURRENT_FILE_POS(fp);
 
     return size;
 }
 
 int readImgDatas(FILE *fp, struct frame *fr) {
-    int rc, fullSize;
     unsigned byte;
 
     fr->minLzwCodeSize = fgetc(fp);
 
-    // TODO: Count full size of following sub-blocks
-    fullSize = countImgDatasSize(fp);
-    printf("Full Size: %d\n", fullSize);
+    fr->fullDatasLength = countImgDatasSize(fp);
 
-    // malloc(x); // x only because reading chars
-    // malloc check
+    fr->datas = (char *) malloc(fr->fullDatasLength);
+    if ( ! fr->datas )  return -1;
 
-    // for needed to skip each sub-block size byte
-    // fgets(ptrDst, x + 1, fp);
+    byte = fgetc(fp);   /* Read first size */
+    for (int i = 0; byte != GIF_END_OF_SECTION; i++) {
+        fgets(fr->datas + i * UCHAR_MAX, byte + 1, fp); /* Read DATAS */
 
-    return rc;
+        byte = fgetc(fp);                               /* Read next size */
+    }
+
+    return 0;
 }
 
 int readFrame(FILE* fp, struct frame *fr, char extCodeFoundOutside) {
@@ -319,7 +318,13 @@ int readDatas(FILE *fp, long gctOffset, union gifComposition *datas) {
         rc = rc ? rc : -1;
     }
 
-    // test Trailer
+    byte = fgetc(fp);
+    if (byte != GIF_EOF) {
+        DBG("%s%s: Read %c(%d) instead of %c(%d)%s\n", RED, __func__,   \
+                                            (char) byte, byte, GIF_EOF, \
+                                            (int) GIF_EOF, NC);
+        rc = rc ? rc : -1;
+    }
 
     RESTORE_CURRENT_FILE_POS(fp);
 
@@ -412,6 +417,7 @@ int main(int argc, char **argv) {
         free(gct.palette);
         if (datas.img.gce.extCode == GIF_PIC_EXT_CODE) {
             free(datas.img.lct.palette);
+            free(datas.img.datas);
         } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
         } else {
         }
@@ -454,6 +460,11 @@ int main(int argc, char **argv) {
 
         printf("\n\tLZW (Lempel Ziv Welch) Minimum code length: %d\n",  \
                                                 datas.img.minLzwCodeSize);
+        printf("\tDatas length: %d\n\t", datas.img.fullDatasLength);
+        for (i = 0; i < datas.img.fullDatasLength; i++) {
+            printf("%02x ", (unsigned char) datas.img.datas[i]);
+            if ((i + 1) % 10 == 0)  printf("\n\t");
+        }
     } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
         printf("Animation (Code: %#x)\n", datas.anim.gce.extCode);
         printf("\t# of datas in sub-block: %d\n", datas.anim.gce.nGceDatas);
@@ -468,6 +479,7 @@ int main(int argc, char **argv) {
 
     if (datas.img.gce.extCode == GIF_PIC_EXT_CODE) {
         free(datas.img.lct.palette);
+        free(datas.img.datas);
     } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
     } else {
     }
