@@ -145,17 +145,15 @@ int readGct(FILE *fp, char ctInfos, unsigned char bitDepth, \
 }
 
 /* *** *** */
-int readFrame(..., char firstGce) {
+int readFrame(struct frame *fr, char firstGce) {
     /* GCE */
     if ( ! firstGce ) {
-        datas->img.gce.nGceDatas = fgetc(fp);
+        fr->gce.nGceDatas = fgetc(fp);
     } /* Otherwise, skip SENTINEL + EXTENSION CODE */
 
     // readImgDescr(...);
 
     // readImgDatas(...);
-
-    // test Trailer
 }
 
 /* *** *** */
@@ -166,8 +164,6 @@ int readAnimation(...) {
 
     // for each ( frames )
     //      readFrame(..., false);
-
-    // test Trailer
 }
 
 /* *** *** */
@@ -213,6 +209,8 @@ int readDatas(FILE *fp, long gctOffset, union gifComposition *datas) {
     } else {
         rc = rc ? rc : -1;
     }
+
+    // test Trailer
 
     RESTORE_CURRENT_FILE_POS(fp);
 
