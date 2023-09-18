@@ -43,7 +43,7 @@ int readHeader(FILE *fp, char **version) {
     /* Restart at file's beginning */
     rc = fseek(fp, 0, SEEK_SET);
     if (rc) DBG("%s%s: fseek failed (%s)%s\n", RED, __func__, \
-                                              strerror(errno), NC);
+                                               strerror(errno), NC);
 
     /* Read at most count - 1 */
     ptrRc = fgets(*version, GIF_HEADER_SIZE + 1, fp);
@@ -121,7 +121,7 @@ int allocateAndReadCt(FILE *fp, unsigned char bitDepth, struct colorTable *ct) {
 }
 
 int readGct(FILE *fp, char ctInfos, unsigned char bitDepth, \
-        struct colorTable *ct) {
+            struct colorTable *ct) {
     int rc;
 
     if ((ctInfos & CT_BITFIELD_CT_PRESENCE) >> CT_PRESENCE_BIT) {
@@ -145,15 +145,41 @@ int readGct(FILE *fp, char ctInfos, unsigned char bitDepth, \
 }
 
 /* *** *** */
-int readFrame(struct frame *fr, char firstGce) {
+int readFrame(FILE* fp, struct frame *fr, char extCodeFoundOutside) {
+    unsigned byte;
+
     /* GCE */
-    if ( ! firstGce ) {
-        fr->gce.nGceDatas = fgetc(fp);
-    } /* Otherwise, skip SENTINEL + EXTENSION CODE */
+    if ( ! extCodeFoundOutside ) {
+        /* Read SENTINEL + EXTENSION CODE */
+        byte = fgetc(fp);
+        if (byte != GIF_GCE_SENTINEL) {
+            DBG("%s%s: Read %c(%d) instead of %c(%d)%s\n", RED, __func__, \
+                                                (char) byte, byte,        \
+                                                GIF_GCE_SENTINEL,         \
+                                                (int) GIF_GCE_SENTINEL,   \
+                                                NC);
+        }
+
+        fr->gce.extCode = fgetc(fp);
+    }
+
+    fr->gce.nGceDatas = fgetc(fp);
+
+    fr->gce.gceSpecs.gcePic.hasTransparency = fgetc(fp);
+
+    for (int i = 0; i < N_DIM_BYTES; ++i) {
+        byte = fgetc(fp);
+
+        if (i)  fr->gce.gceSpecs.gcePic.frameDelay += ((unsigned)byte * 256);
+        else    fr->gce.gceSpecs.gcePic.frameDelay = byte;
+    }
+    fr->gce.gceSpecs.gcePic.frameDelay *= 10; /* To milliseconds */
 
     // readImgDescr(...);
 
     // readImgDatas(...);
+
+    return 0;
 }
 
 /* *** *** */
@@ -164,6 +190,7 @@ int readAnimation(...) {
 
     // for each ( frames )
     //      readFrame(..., false);
+    return 0;
 }
 
 /* *** *** */
@@ -188,19 +215,12 @@ int readDatas(FILE *fp, long gctOffset, union gifComposition *datas) {
     if (byte == GIF_PIC_EXT_CODE) {
         datas->img.gce.extCode = byte;
 
-        // readFrame(..., firstGce = true);
-        // => firstGce = true, skip SENTINEL + extCode
+        readFrame(fp, &datas->img, 1);
 
-        /* TODO Move followings inside readFrame() */
-
-        /* Dedicated part */
-        datas->img.gce.gceSpecs.gcePic.hasTransparency = fgetc(fp);
     } else if (byte == GIF_ANIM_EXT_CODE) {
         datas->anim.gce.extCode = byte;
 
-        // readAnimation(...);
-        // Not much interest for firstGce in animation, 
-        // because you can't have "recursive" animation in a file
+        // readAnimation(fp, &datas->anim);
 
         /* TODO Move followings inside readAnimation() */
         datas->anim.gce.nGceDatas = fgetc(fp);
@@ -305,6 +325,10 @@ int main(int argc, char **argv) {
     if (datas.img.gce.extCode == GIF_PIC_EXT_CODE) {
         printf("Picture (Code: %#x)\n", datas.img.gce.extCode);
         printf("# of datas in sub-block: %d\n", datas.img.gce.nGceDatas);
+        printf("Transparent field: %#x\n",  \
+                                datas.img.gce.gceSpecs.gcePic.hasTransparency);
+        printf("Frame delay: %d[ms] (Useless for this file)\n",  \
+                                datas.img.gce.gceSpecs.gcePic.frameDelay);
     } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
         printf("Animation (Code: %#x)\n", datas.anim.gce.extCode);
         printf("# of datas in sub-block: %d\n", datas.anim.gce.nGceDatas);
