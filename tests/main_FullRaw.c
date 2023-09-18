@@ -145,6 +145,26 @@ int readGct(FILE *fp, char ctInfos, unsigned char bitDepth, \
 }
 
 /* *** *** */
+int readImgDescr(FILE *fp, struct frame *fr) {
+    unsigned byte;
+
+    byte = fgetc(fp);
+    if (byte != GIF_IMG_DESCR_SENTINEL) {
+        DBG("%s%s: Read %c(%d) instead of %c(%d)%s\n", RED, __func__,       \
+                                            (char) byte, byte,              \
+                                            GIF_IMG_DESCR_SENTINEL,         \
+                                            (int) GIF_IMG_DESCR_SENTINEL,   \
+                                            NC);
+    }
+
+    /* TODO: transform gifReadDims param into "void *" */
+    gifReadDims(fp, (struct dimension *)&fr->descr.pos);
+
+    gifReadDims(fp, &fr->descr.dim);
+    
+    return 0;
+}
+
 int readFrame(FILE* fp, struct frame *fr, char extCodeFoundOutside) {
     unsigned byte;
 
@@ -186,9 +206,9 @@ int readFrame(FILE* fp, struct frame *fr, char extCodeFoundOutside) {
                                             NC);
     }
 
-    // readImgDescr(...);
+    readImgDescr(fp, fr);
 
-    // readImgDatas(...);
+    // readImgDatas(fp, fr);
 
     return 0;
 }
@@ -343,8 +363,13 @@ int main(int argc, char **argv) {
                                 datas.img.gce.gceSpecs.gcePic.hasTransparency);
         printf("Frame delay: %d[ms] (Useless for this file)\n", \
                                 datas.img.gce.gceSpecs.gcePic.frameDelay);
-        printf("Transparent index in Color Table: %d\n",        \
+        printf("Transparent index in Color Table: %d\n\n",      \
                                 datas.img.gce.gceSpecs.gcePic.transpColNbr);
+
+        printf("Position from North/West: (%d, %d)\n", datas.img.descr.pos.x, \
+                                                       datas.img.descr.pos.y);
+        printf("Dimension: %dx%d\n", datas.img.descr.dim.width, \
+                                     datas.img.descr.dim.height);
     } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
         printf("Animation (Code: %#x)\n", datas.anim.gce.extCode);
         printf("# of datas in sub-block: %d\n", datas.anim.gce.nGceDatas);
