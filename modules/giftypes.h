@@ -211,14 +211,6 @@ struct imgDescriptor {
 };
 
 /**********************************************
- *
- **********************************************/
-struct imgDatas {
-    int rawDataSize;
-    unsigned char *rawDatas;
-};
-
-/**********************************************
  * A Frame is composed of:
  *      a frame's gce (picture's gce)
  *      & an image (see structure above)
@@ -229,16 +221,17 @@ struct frame {
     struct imgDescriptor descr;
     struct colorTable lct;
     int minLzwCodeSize;
-    struct imgDatas *datas;
+    int fullDatasLength;
+    char *datas;
 };
 
 /**********************************************
  *
  **********************************************/
 struct animation {
-	struct gce gce;
-	unsigned int nFrames;
-	struct frame *frames;
+    struct gce gce;
+    unsigned int nFrames;
+    struct frame *frames;
 };
 
 /**********************************************
