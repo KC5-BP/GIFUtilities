@@ -8,13 +8,13 @@
 #include "../modules/giftypes.h"
 
 /* *** *** */
-#define LIGHT_CYAN "\033[1;36m"
-#define ORANGE     "\033[0;33m"
-#define GREEN      "\033[0;32m"
-#define GREEN_BOLD "\033[1;32m"
-#define RED        "\033[0;31m"
-#define RED_BOLD   "\033[1;31m"
-#define NC         "\033[0m"
+#define LIGHT_CYAN_BOLD "\033[1;36m"
+#define ORANGE          "\033[0;33m"
+#define GREEN           "\033[0;32m"
+#define GREEN_BOLD      "\033[1;32m"
+#define RED             "\033[0;31m"
+#define RED_BOLD        "\033[1;31m"
+#define NC              "\033[0m"
 
 /* *** *** */
 #define SAVE_CURRENT_FILE_POS(FP)   \
@@ -274,7 +274,8 @@ int main(int argc, char **argv) {
         free(version);
         return -1;
     }
-    printf("Header: %s\n", version);
+    printf("%s --- Header --- %s\n", LIGHT_CYAN_BOLD, NC);
+    printf("Version: %s\n", version);
 
     /* *** *** */
     rc = readLsd(fp, &lsd);
@@ -284,6 +285,7 @@ int main(int argc, char **argv) {
         free(version);
         return -1;
     }
+    printf("%s --- Logical Screen Descriptor --- %s\n", LIGHT_CYAN_BOLD, NC);
     printf("Logical Dimension: %dx%d\n", lsd.logicDim.width, lsd.logicDim.height);
     printf("GCT info: %#x\n", lsd.gctInfos);
     printf("Bit depth: %d\n", lsd.bitDepth);
@@ -321,6 +323,7 @@ int main(int argc, char **argv) {
         free(gct.palette);
         return -1;
     }
+    printf("%s --- Datas --- %s\n", LIGHT_CYAN_BOLD, NC);
     printf("File type: ");
     if (datas.img.gce.extCode == GIF_PIC_EXT_CODE) {
         printf("Picture (Code: %#x)\n", datas.img.gce.extCode);
