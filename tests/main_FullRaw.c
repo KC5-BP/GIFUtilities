@@ -415,10 +415,16 @@ int main(int argc, char **argv) {
         fclose(fp);
         free(version);
         free(gct.palette);
+
         if (datas.img.gce.extCode == GIF_PIC_EXT_CODE) {
             free(datas.img.lct.palette);
             free(datas.img.datas);
         } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
+            for (i = 0; i < datas.anim.nFrames; i++) {
+                free(datas.anim.frames[i].lct.palette);
+                free(datas.anim.frames[i].datas);
+            }
+            free(datas.anim.frames); /* /!\ LAST TO DO /!\ */
         } else {
         }
         return -1;
@@ -482,6 +488,11 @@ int main(int argc, char **argv) {
         free(datas.img.lct.palette);
         free(datas.img.datas);
     } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
+        for (i = 0; i < datas.anim.nFrames; i++) {
+            free(datas.anim.frames[i].lct.palette);
+            free(datas.anim.frames[i].datas);
+        }
+        free(datas.anim.frames); /* /!\ LAST TO DO /!\ */
     } else {
     }
 
