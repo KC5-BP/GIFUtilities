@@ -181,6 +181,48 @@ int readImgDescr(FILE *fp, struct frame *fr) {
     return rc;
 }
 
+int countImgDatasSize(FILE *fp) {
+    int rc, size = 0;
+    unsigned byte;
+
+    SAVE_CURRENT_FILE_POS(fp);
+
+    do {
+        byte = fgetc(fp);
+        printf("%s: byte=%#x(%d)\n", __func__, byte, byte);
+        size += byte;
+
+        rc = fseek(fp, byte, SEEK_CUR);
+        if (rc) DBG("%s%s: fseek failed (%s)%s\n", RED, __func__, \
+                                                   strerror(errno), NC);
+    } while (byte != 0);
+
+    byte = fgetc(fp);
+    printf("Trailer? %s\n", (byte == GIF_EOF) ? "YES" : "NO");
+    RESTORE_CURRENT_FILE_POS(fp);
+
+    return size;
+}
+
+int readImgDatas(FILE *fp, struct frame *fr) {
+    int rc, fullSize;
+    unsigned byte;
+
+    fr->minLzwCodeSize = fgetc(fp);
+
+    // TODO: Count full size of following sub-blocks
+    fullSize = countImgDatasSize(fp);
+    printf("Full Size: %d\n", fullSize);
+
+    // malloc(x); // x only because reading chars
+    // malloc check
+
+    // for needed to skip each sub-block size byte
+    // fgets(ptrDst, x + 1, fp);
+
+    return rc;
+}
+
 int readFrame(FILE* fp, struct frame *fr, char extCodeFoundOutside) {
     unsigned byte;
 
@@ -224,7 +266,7 @@ int readFrame(FILE* fp, struct frame *fr, char extCodeFoundOutside) {
 
     readImgDescr(fp, fr);
 
-    // readImgDatas(fp, fr);
+    readImgDatas(fp, fr);
 
     return 0;
 }
@@ -409,6 +451,9 @@ int main(int argc, char **argv) {
             printf("\tFrame %sdoes NOT have%s a Local Color Table\n",   \
                                                                 RED_BOLD, NC);
         }
+
+        printf("\n\tLZW (Lempel Ziv Welch) Minimum code length: %d\n",  \
+                                                datas.img.minLzwCodeSize);
     } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
         printf("Animation (Code: %#x)\n", datas.anim.gce.extCode);
         printf("\t# of datas in sub-block: %d\n", datas.anim.gce.nGceDatas);
