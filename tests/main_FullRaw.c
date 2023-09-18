@@ -146,6 +146,7 @@ int readGct(FILE *fp, char ctInfos, unsigned char bitDepth, \
 
 /* *** *** */
 int readImgDescr(FILE *fp, struct frame *fr) {
+    int rc;
     unsigned byte;
 
     byte = fgetc(fp);
@@ -162,7 +163,22 @@ int readImgDescr(FILE *fp, struct frame *fr) {
 
     gifReadDims(fp, &fr->descr.dim);
     
-    return 0;
+    /* *** Local Color Table Descriptor *** */
+    fr->descr.lctInfos = (unsigned char) fgetc(fp);
+    fr->descr.bitDepth = (fr->descr.lctInfos & CT_BITFIELD_PAL_BITS) + 1;
+
+    if ((fr->descr.lctInfos & CT_BITFIELD_CT_PRESENCE) >> CT_PRESENCE_BIT) {
+        rc = allocateAndReadCt(fp, fr->descr.bitDepth, &fr->lct);
+        if (rc)
+            DBG("%s%s: Failure during allocating and reading LCT%s\n", \
+                                                    RED, __func__, NC);
+    } else {
+        fr->lct.nCol = 0;
+        fr->lct.palette = NULL;
+        rc = 0;
+    }
+
+    return rc;
 }
 
 int readFrame(FILE* fp, struct frame *fr, char extCodeFoundOutside) {
@@ -338,8 +354,8 @@ int main(int argc, char **argv) {
         printf(" i ) -R- -G- -B-\n");
         for (i = 0; i < gct.nCol; ++i) {
             printf("%3d) %3d %3d %3d\n", i, gct.palette[i].r, \
-                    gct.palette[i].g, \
-                    gct.palette[i].b);
+                                            gct.palette[i].g, \
+                                            gct.palette[i].b);
         }
     } else {
         printf("File %sdoes NOT have%s a Global Color Table\n", RED_BOLD, NC);
@@ -352,6 +368,11 @@ int main(int argc, char **argv) {
         fclose(fp);
         free(version);
         free(gct.palette);
+        if (datas.img.gce.extCode == GIF_PIC_EXT_CODE) {
+            free(datas.img.lct.palette);
+        } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
+        } else {
+        }
         return -1;
     }
     printf("%s --- Datas --- %s\n", LIGHT_CYAN_BOLD, NC);
@@ -371,6 +392,23 @@ int main(int argc, char **argv) {
                                                     datas.img.descr.pos.y);
         printf("\tDimension: %dx%d\n", datas.img.descr.dim.width, \
                                        datas.img.descr.dim.height);
+        printf("\tLCT info: %#x\n", datas.img.descr.lctInfos);
+        printf("\tBit Depth: %d\n", datas.img.descr.bitDepth);
+        if (datas.img.lct.nCol) {
+            printf("\tFrame %sdoes have%s a Local Color Table\n",   \
+                                                                GREEN_BOLD, NC);
+            printf("\t# of colors (2^%d): %d\n", datas.img.descr.bitDepth,  \
+                                                 datas.img.lct.nCol);
+            printf("\t i ) -R- -G- -B-\n");
+            for (i = 0; i < datas.img.lct.nCol; ++i) {
+                printf("\t%3d) %3d %3d %3d\n", i, datas.img.lct.palette[i].r, \
+                                                  datas.img.lct.palette[i].g, \
+                                                  datas.img.lct.palette[i].b);
+            }
+        } else {
+            printf("\tFrame %sdoes NOT have%s a Local Color Table\n",   \
+                                                                RED_BOLD, NC);
+        }
     } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
         printf("Animation (Code: %#x)\n", datas.anim.gce.extCode);
         printf("\t# of datas in sub-block: %d\n", datas.anim.gce.nGceDatas);
@@ -382,6 +420,12 @@ int main(int argc, char **argv) {
     fclose(fp);
     free(version);
     free(gct.palette);
+
+    if (datas.img.gce.extCode == GIF_PIC_EXT_CODE) {
+        free(datas.img.lct.palette);
+    } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
+    } else {
+    }
 
     return 0;
 }
