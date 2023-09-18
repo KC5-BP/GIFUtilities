@@ -462,8 +462,8 @@ int main(int argc, char **argv) {
                                                 datas.img.minLzwCodeSize);
         printf("\tDatas length: %d\n\t", datas.img.fullDatasLength);
         for (i = 0; i < datas.img.fullDatasLength; i++) {
+            if (i && (i % 10 == 0)) printf("\n\t");
             printf("%02x ", (unsigned char) datas.img.datas[i]);
-            if ((i + 1) % 10 == 0)  printf("\n\t");
         }
     } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
         printf("Animation (Code: %#x)\n", datas.anim.gce.extCode);
@@ -471,6 +471,7 @@ int main(int argc, char **argv) {
     } else {
         printf("Unknown\n");
     }
+    printf("\n");
 
     /* *** *** */
     fclose(fp);
