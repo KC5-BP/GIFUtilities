@@ -175,6 +175,17 @@ int readFrame(FILE* fp, struct frame *fr, char extCodeFoundOutside) {
     }
     fr->gce.gceSpecs.gcePic.frameDelay *= 10; /* To milliseconds */
 
+    fr->gce.gceSpecs.gcePic.transpColNbr = fgetc(fp);
+
+    byte = fgetc(fp);
+    if (byte != GIF_END_OF_SECTION) {
+        DBG("%s%s: Read %c(%d) instead of %c(%d)%s\n", RED, __func__, \
+                                            (char) byte, byte,        \
+                                            GIF_END_OF_SECTION,       \
+                                            (int) GIF_END_OF_SECTION, \
+                                            NC);
+    }
+
     // readImgDescr(...);
 
     // readImgDatas(...);
@@ -330,8 +341,10 @@ int main(int argc, char **argv) {
         printf("# of datas in sub-block: %d\n", datas.img.gce.nGceDatas);
         printf("Transparent field: %#x\n",  \
                                 datas.img.gce.gceSpecs.gcePic.hasTransparency);
-        printf("Frame delay: %d[ms] (Useless for this file)\n",  \
+        printf("Frame delay: %d[ms] (Useless for this file)\n", \
                                 datas.img.gce.gceSpecs.gcePic.frameDelay);
+        printf("Transparent index in Color Table: %d\n",        \
+                                datas.img.gce.gceSpecs.gcePic.transpColNbr);
     } else if (datas.anim.gce.extCode == GIF_ANIM_EXT_CODE) {
         printf("Animation (Code: %#x)\n", datas.anim.gce.extCode);
         printf("# of datas in sub-block: %d\n", datas.anim.gce.nGceDatas);
