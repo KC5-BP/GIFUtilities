@@ -204,6 +204,7 @@ int countImgDatasSize(FILE *fp) {
 
 int readImgDatas(FILE *fp, struct frame *fr) {
     unsigned byte;
+    int readRc;
 
     fr->minLzwCodeSize = fgetc(fp);
 
@@ -212,12 +213,18 @@ int readImgDatas(FILE *fp, struct frame *fr) {
     fr->datas = (char *) malloc(fr->fullDatasLength);
     if ( ! fr->datas )  return -1;
 
-    byte = fgetc(fp);   /* Read first size */
-    for (int i = 0; byte != GIF_END_OF_SECTION; i++) {
-        fgets(fr->datas + i * UCHAR_MAX, byte + 1, fp); /* Read DATAS */
+    int i = 0;
+    byte = fgetc(fp);
+    do {
+        //readRc = read(fileno(fp), fr->datas + UCHAR_MAX * i++, byte);
+        readRc = fread(fr->datas + UCHAR_MAX * i++, sizeof(char), byte, fp);
+        if (readRc != byte) {
+            DBG("%s%s: read() warning! Has been read (%d) expected (%d)%s\n", RED, __func__, readRc, byte, NC);
+            return -1; /* TODO Replace with rc = -1 instead ? */
+        }
 
-        byte = fgetc(fp);                               /* Read next size */
-    }
+        byte = fgetc(fp);
+    } while (byte != GIF_END_OF_SECTION);
 
     return 0;
 }
